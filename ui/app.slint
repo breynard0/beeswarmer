@@ -1,0 +1,59 @@
+import { Button, VerticalBox, TabWidget } from "std-widgets.slint";
+import { TabsWidget } from "tabs-widget.slint";
+import { CSVEditor } from "tabs/csv_editor.slint";
+import { ProjectSetup } from "tabs/setup.slint";
+import { AppStateSlint } from "appstate.slint";
+
+export component AppWindow inherits Window {
+    min-width: 600px;
+    min-height: 400px;
+    default-font-size: 12px;
+    title: "Beeswarmer";
+    
+    callback file-browser(create-new: bool);
+    callback reset-data(idx: int);
+
+    in-out property <AppStateSlint> app-data-slint;
+
+    VerticalLayout {
+        tab := TabsWidget {
+            height: 40px;
+            tab-titles: [
+                "Project Setup",
+                "CSV Editor",
+                "Numerical",
+                "Catagorical",
+                "Scoring",
+                "Generate"
+            ];
+            highest-achieved: 0;
+        }
+
+        function general-next() {
+            tab.selected-index += 1;
+            tab.highest-achieved += 1;
+        }
+        function general-reset(idx: int) {
+            tab.selected-index = idx;
+            tab.highest-achieved += idx;
+        }
+
+        if tab.selected-index == 0: ProjectSetup {
+            font-size: root.default-font-size;
+            window-width: root.width;
+            data: app-data-slint;
+            changed data => {
+                app-data-slint = self.data;
+            }
+            file-browser(create-new) => {
+                file-browser(create-new)
+            }
+            next => general-next();
+        }
+        if tab.selected-index == 1: CSVEditor {
+            font-size: root.default-font-size;
+            window-width: root.width;
+            next => general-next();
+        }
+    }
+}

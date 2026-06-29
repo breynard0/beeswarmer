@@ -1,0 +1,86 @@
+import { Button, LineEdit } from "std-widgets.slint";
+import { TabBase } from "tab_base.slint";
+import { AppStateSlint } from "../appstate.slint";
+export component ProjectSetup inherits TabBase {
+    callback file-browser(create-new: bool);
+    in-out property <AppStateSlint> data;
+
+    VerticalLayout {
+        padding-left: 40px;
+        spacing: 10px;
+        HorizontalLayout {
+            padding-top: 20px;
+            spacing: 10px;
+            VerticalLayout {
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+
+                Text {
+                    text: "Project File Path:";
+                }
+
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+            }
+
+            LineEdit {
+                y: 0;
+                text: data.save-file-path;
+                accepted(text) => {
+                    data.save-file-path = text;
+                }
+            }
+
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 4px;
+            Button {
+                text: "Open File";
+                horizontal-stretch: 1;
+                clicked => {
+                    file-browser(false)
+                }
+            }
+
+            Button {
+                text: "New Project";
+                horizontal-stretch: 1;
+                clicked => {
+                    file-browser(true)
+                }
+            }
+
+            Rectangle {
+                horizontal-stretch: 8;
+            }
+        }
+
+        // Next Button
+        Rectangle {
+            vertical-stretch: 1;
+        }
+
+        HorizontalLayout {
+            padding: 8px;
+            height: 48px;
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+
+            Button {
+                text: "Next";
+                enabled: false;
+
+                clicked => {
+                    root.next()
+                }
+            }
+        }
+    }
+}

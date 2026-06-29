@@ -1,0 +1,8 @@
+export component TabBase {
+    @children
+    in property <length> font-size;
+    in property <length> window-width;
+
+    callback next();
+    callback reset(selected-index: int);
+}

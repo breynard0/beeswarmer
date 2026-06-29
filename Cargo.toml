@@ -1,0 +1,20 @@
+[package]
+name = "beeswarmer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+slint = "1.17.0"
+rfd = { version = "0.17.2", default-features = false, features = [ "gtk3", "wayland", "common-controls-v6"] }
+
+spdlog-rs = "0.5.3"
+directories = "6.0.0"
+toml = "1.1.2"
+
+[build-dependencies]
+slint-build = "1.17.0"
+
+[profile.release]
+codegen-units = 1
+lto = true

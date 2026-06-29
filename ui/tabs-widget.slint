@@ -1,0 +1,42 @@
+import { Palette } from "std-widgets.slint";
+export component TabsWidget {
+    in-out property <[string]> tab-titles;
+    in-out property <int> selected-index;
+    in-out property <int> highest-achieved: 5;
+    height: 60px;
+
+    for tab-text[index] in tab-titles: Rectangle {
+        width: parent.width / tab-titles.length;
+        x: parent.width / tab-titles.length * index;
+
+        border-width: 0.5px;
+        border-color: Palette.background;
+
+        Text {
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            text: tab-text;
+            color: index <= highest-achieved ? Palette.foreground : Palette.foreground.darker(0.5);
+        }
+
+        touch := TouchArea {
+            clicked => {
+                if (index <= highest-achieved) {
+                    selected_index = index
+                }
+            }
+        }
+
+        states [
+            hovered when touch.has-hover && selected_index != index && index <= highest-achieved: {
+                background: Palette.alternate-background.brighter(0.2);
+            }
+            disabled when selected_index != index: {
+                background: Palette.alternate-background;
+            }
+            enabled when selected_index == index: {
+                background: Palette.selection-background;
+            }
+        ]
+    }
+}
