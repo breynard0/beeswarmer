@@ -2,3 +2,7 @@ export struct AppStateSlint {
     save-file-path: string,
     french-selected: bool,
 }
+
+export global AppStateCallbacks {
+    callback sync-appstate(AppStateSlint);
+}

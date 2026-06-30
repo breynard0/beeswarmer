@@ -4,15 +4,18 @@ import { CSVEditor } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
 import { AppStateSlint } from "appstate.slint";
 
+export { SetupCallbacks } from "tabs/setup.slint";
+export { AppStateCallbacks } from "appstate.slint";
+
+// TODO: Make next button able to be enabled then add reset logic
+
 export component AppWindow inherits Window {
     min-width: 600px;
     min-height: 400px;
     default-font-size: 12px;
     title: "Beeswarmer";
 
-    callback file-browser(create-new: bool);
     callback reset-data(idx: int);
-    callback language_changed(bool);
 
     in-out property <AppStateSlint> app-data-slint;
 
@@ -27,7 +30,7 @@ export component AppWindow inherits Window {
                 @tr("Scoring"),
                 @tr("Generate")
             ];
-            highest-achieved: 4;
+            highest-achieved: 0;
         }
 
         function general-next() {
@@ -45,12 +48,6 @@ export component AppWindow inherits Window {
             data: app-data-slint;
             changed data => {
                 app-data-slint = self.data;
-            }
-            file-browser(create-new) => {
-                file-browser(create-new)
-            }
-            language_changed(fr) => {
-                language_changed(fr)
             }
             next => general-next();
         }

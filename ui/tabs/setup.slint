@@ -1,11 +1,16 @@
 import { Button, LineEdit } from "std-widgets.slint";
 import { TabBase } from "tab_base.slint";
-import { AppStateSlint } from "../appstate.slint";
+import { AppStateSlint, AppStateCallbacks } from "../appstate.slint";
 import { LanguageSelector } from "../widgets/language-selector.slint";
-export component ProjectSetup inherits TabBase {
-    callback file-browser(create-new: bool);
-    in-out property <AppStateSlint> data;
+
+export global SetupCallbacks {
     callback language_changed(bool);
+    callback file-browser(create-new: bool);
+    callback setup-next-button() -> string;
+}
+
+export component ProjectSetup inherits TabBase {
+    in-out property <AppStateSlint> data;
 
     VerticalLayout {
         padding-left: 40px;
@@ -23,6 +28,7 @@ export component ProjectSetup inherits TabBase {
                 text: data.save-file-path;
                 accepted(text) => {
                     data.save-file-path = text;
+                    AppStateCallbacks.sync-appstate(data)
                 }
             }
 
@@ -37,7 +43,7 @@ export component ProjectSetup inherits TabBase {
                 text: @tr("Open File");
                 horizontal-stretch: 1;
                 clicked => {
-                    file-browser(false)
+                    SetupCallbacks.file-browser(false)
                 }
             }
 
@@ -45,7 +51,7 @@ export component ProjectSetup inherits TabBase {
                 text: @tr("New Project");
                 horizontal-stretch: 1;
                 clicked => {
-                    file-browser(true)
+                    SetupCallbacks.file-browser(true)
                 }
             }
 
@@ -67,7 +73,7 @@ export component ProjectSetup inherits TabBase {
                 width: 80px;
                 french-selected: data.french-selected;
                 language_changed(fr) => {
-                    language_changed(fr)
+                    SetupCallbacks.language_changed(fr)
                 }
             }
 
@@ -75,12 +81,22 @@ export component ProjectSetup inherits TabBase {
                 horizontal-stretch: 1;
             }
 
+            msg := Text {
+                color: red;
+            }
+
             btn := Button {
                 text: @tr("Next");
-                enabled: false;
+                enabled: !data.save-file-path.is-empty;
 
                 clicked => {
-                    root.next()
+                    let result = SetupCallbacks.setup-next-button();
+                    if (result == "yay") {
+                        root.next()
+                    } else {
+                        msg.text = @tr("Cannot continue: {}", result);
+                        msg.visible = true;
+                    }
                 }
             }
         }

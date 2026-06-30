@@ -6,43 +6,61 @@ export component LanguageSelector {
     en_rect := Rectangle {
         x: 0;
         width: parent.width / 2;
-        Text {
-            text: "EN";
-            horizontal-alignment: center;
-            vertical-alignment: center;
-        }
-
         border-bottom-left-radius: parent.height / 3;
         border-top-left-radius: parent.height / 3;
-        background: !french-selected ? Palette.selection-background : Palette.alternate-background;
-        border-width: 1px;
-        border-color: Palette.foreground;
+        background: Palette.alternate-background;
     }
 
     fr_rect := Rectangle {
-        x: parent.width / 2;
+        x: parent.width / 2 - 1px;
         width: parent.width / 2;
-        Text {
-            text: "FR";
-            horizontal-alignment: center;
-            vertical-alignment: center;
-        }
-
         border-bottom-right-radius: parent.height / 3;
         border-top-right-radius: parent.height / 3;
-        background: french-selected ? Palette.selection-background : Palette.alternate-background;
+        background: Palette.alternate-background;
+    }
+
+    // Selection rectangle
+    sel_rect := Rectangle {
+        background: Palette.selection-background;
+        width: parent.width / 2;
+        x: french-selected ? parent.width / 2 - 1px : 0;
+        border-bottom-left-radius: french-selected ? 0px : parent.height / 3;
+        border-top-left-radius: french-selected ? 0px : parent.height / 3;
+        border-bottom-right-radius: !french-selected ? 0px : parent.height / 3;
+        border-top-right-radius: !french-selected ? 0px : parent.height / 3;
+        animate x, border-bottom-left-radius, border-top-left-radius, border-bottom-right-radius, border-top-right-radius { duration: 100ms; }
+    }
+
+    Text {
+        text: "EN";
+        width: parent.width / 2;
+        x: 0;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    Text {
+        text: "FR";
+        width: parent.width / 2;
+        x: parent.width / 2 - 1px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    // Border rectangle
+    border-rect := Rectangle {
+        width: parent.width;
+        border-radius: parent.height / 3;
         border-width: 1px;
-        border-color: Palette.foreground;
+        border-color: Palette.border;
     }
 
     FocusScope {
         focus-gained(reason) => {
-            en_rect.border-width = 2px;
-            fr_rect.border-width = 2px;
+            border-rect.border-color = Palette.foreground;
         }
         focus-lost(reason) => {
-            en_rect.border-width = 1px;
-            fr_rect.border-width = 1px;
+            border-rect.border-color = Palette.border;
         }
         focus-on-tab-navigation: true;
         accessible-role: switch;
