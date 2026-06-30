@@ -1,4 +1,4 @@
-use spdlog::{error, warn};
+use spdlog::{error, info, warn};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Config {
@@ -63,6 +63,7 @@ impl Config {
     }
 
     pub fn apply_config(&self) {
+        info!("Applying config");
         match self.is_french {
             true => slint::select_bundled_translation("fr").unwrap_or_else(|err| {
                 error!("Failed to load French locale: {err}");

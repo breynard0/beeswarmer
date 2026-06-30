@@ -2,7 +2,7 @@ use crate::appdata::AppState;
 use crate::callbacks::sync_appdata;
 use crate::config::Config;
 use crate::{AppWindow, SetupCallbacks};
-use slint::ComponentHandle;
+use slint::{ComponentHandle, ModelRc, VecModel};
 use spdlog::{error, info};
 use std::sync::{Arc, Mutex};
 
@@ -81,6 +81,11 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 return match std::fs::exists(path) {
                     Ok(res) => {
                         if res {
+                            Config::tweak_config(|conf| {
+                                if !conf.recent_projects.contains(path) {
+                                    conf.recent_projects.push(path.clone());
+                                }
+                            });
                             "yay".into()
                         } else {
                             "Save file not found at provided path".into()
@@ -91,5 +96,17 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
             };
             "Failed to gain lock on internal data pipeline".into()
         })
+    }
+
+    {
+        global.on_get_recent_files(|| {
+            ModelRc::new(VecModel::from(
+                Config::load_config()
+                    .recent_projects
+                    .iter()
+                    .map(|x| x.into())
+                    .collect::<Vec<slint::SharedString>>(),
+            ))
+        });
     }
 }

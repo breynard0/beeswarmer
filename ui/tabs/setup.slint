@@ -1,10 +1,11 @@
-import { Button, LineEdit } from "std-widgets.slint";
+import { Button, LineEdit, ListView, Palette } from "std-widgets.slint";
 import { TabBase } from "tab_base.slint";
 import { AppStateSlint, AppStateCallbacks } from "../appstate.slint";
 import { LanguageSelector } from "../widgets/language-selector.slint";
 
 export global SetupCallbacks {
-    callback language_changed(bool);
+    pure callback get-recent-files() -> [string];
+    callback language-changed(bool);
     callback file-browser(create-new: bool);
     callback setup-next-button() -> string;
 }
@@ -60,6 +61,62 @@ export component ProjectSetup inherits TabBase {
             }
         }
 
+        Text {
+            text: "\nRecent Projects";
+        }
+
+        HorizontalLayout {
+            Rectangle {
+                background: Palette.alternate-background;
+                border-radius: 4px;
+                border-width: 1px;
+                border-color: Palette.border;
+                ListView {
+                    for entry in SetupCallbacks.get-recent-files(): Rectangle {
+                        background: data.save-file-path == entry ? Palette.selection-background : touch.has-hover ? Palette.control-background.darker(0.8) : Palette.control-background;
+                        border-width: 1px;
+                        border-color: Palette.border;
+                        height: 20px;
+                        Text {
+                            text: entry;
+                        }
+
+                        FocusScope {
+                            focus-gained(reason) => {
+                                parent.border-color = Palette.foreground;
+                            }
+                            focus-lost(reason) => {
+                                parent.border-color = Palette.border;
+                            }
+                            focus-on-tab-navigation: true;
+                            accessible-role: switch;
+                            accessible-label: entry;
+                            capture-key-pressed(event) => {
+                                if (event.text == " " || event.text == "\n") {
+                                    touch.clicked();
+                                    return EventResult.accept;
+                                } else {
+                                    return EventResult.reject;
+                                }
+                            }
+                        }
+
+                        touch := TouchArea {
+                            width: parent.width;
+                            height: parent.height;
+                            clicked => {
+                                data.save-file-path = entry;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 40px;
+            }
+        }
+
         // Next button and language toggle
         Rectangle {
             vertical-stretch: 1;
@@ -73,7 +130,7 @@ export component ProjectSetup inherits TabBase {
                 width: 80px;
                 french-selected: data.french-selected;
                 language_changed(fr) => {
-                    SetupCallbacks.language_changed(fr)
+                    SetupCallbacks.language-changed(fr)
                 }
             }
 
