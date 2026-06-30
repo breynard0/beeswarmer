@@ -1,0 +1,68 @@
+import { Palette } from "std-widgets.slint";
+export component LanguageSelector {
+    in-out property <bool> french-selected: false;
+    callback language_changed(bool);
+
+    en_rect := Rectangle {
+        x: 0;
+        width: parent.width / 2;
+        Text {
+            text: "EN";
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        border-bottom-left-radius: parent.height / 3;
+        border-top-left-radius: parent.height / 3;
+        background: !french-selected ? Palette.selection-background : Palette.alternate-background;
+        border-width: 1px;
+        border-color: Palette.foreground;
+    }
+
+    fr_rect := Rectangle {
+        x: parent.width / 2;
+        width: parent.width / 2;
+        Text {
+            text: "FR";
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        border-bottom-right-radius: parent.height / 3;
+        border-top-right-radius: parent.height / 3;
+        background: french-selected ? Palette.selection-background : Palette.alternate-background;
+        border-width: 1px;
+        border-color: Palette.foreground;
+    }
+
+    FocusScope {
+        focus-gained(reason) => {
+            en_rect.border-width = 2px;
+            fr_rect.border-width = 2px;
+        }
+        focus-lost(reason) => {
+            en_rect.border-width = 1px;
+            fr_rect.border-width = 1px;
+        }
+        focus-on-tab-navigation: true;
+        accessible-role: switch;
+        accessible-label: @tr("Language Toggle");
+        capture-key-pressed(event) => {
+            if (event.text == " " || event.text == "\n") {
+                touch.clicked();
+                return EventResult.accept;
+            } else {
+                return EventResult.reject;
+            }
+        }
+    }
+
+    touch := TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => {
+            french-selected = !french-selected;
+            language_changed(french-selected)
+        }
+    }
+}

@@ -1,9 +1,11 @@
 import { Button, LineEdit } from "std-widgets.slint";
 import { TabBase } from "tab_base.slint";
 import { AppStateSlint } from "../appstate.slint";
+import { LanguageSelector } from "../widgets/language-selector.slint";
 export component ProjectSetup inherits TabBase {
     callback file-browser(create-new: bool);
     in-out property <AppStateSlint> data;
+    callback language_changed(bool);
 
     VerticalLayout {
         padding-left: 40px;
@@ -11,18 +13,9 @@ export component ProjectSetup inherits TabBase {
         HorizontalLayout {
             padding-top: 20px;
             spacing: 10px;
-            VerticalLayout {
-                Rectangle {
-                    horizontal-stretch: 1;
-                }
-
-                Text {
-                    text: "Project File Path:";
-                }
-
-                Rectangle {
-                    horizontal-stretch: 1;
-                }
+            Text {
+                text: @tr("Project File Path:");
+                vertical-alignment: center;
             }
 
             LineEdit {
@@ -41,7 +34,7 @@ export component ProjectSetup inherits TabBase {
         HorizontalLayout {
             spacing: 4px;
             Button {
-                text: "Open File";
+                text: @tr("Open File");
                 horizontal-stretch: 1;
                 clicked => {
                     file-browser(false)
@@ -49,7 +42,7 @@ export component ProjectSetup inherits TabBase {
             }
 
             Button {
-                text: "New Project";
+                text: @tr("New Project");
                 horizontal-stretch: 1;
                 clicked => {
                     file-browser(true)
@@ -61,7 +54,7 @@ export component ProjectSetup inherits TabBase {
             }
         }
 
-        // Next Button
+        // Next button and language toggle
         Rectangle {
             vertical-stretch: 1;
         }
@@ -69,12 +62,21 @@ export component ProjectSetup inherits TabBase {
         HorizontalLayout {
             padding: 8px;
             height: 48px;
+
+            LanguageSelector {
+                width: 80px;
+                french-selected: data.french-selected;
+                language_changed(fr) => {
+                    language_changed(fr)
+                }
+            }
+
             Rectangle {
                 horizontal-stretch: 1;
             }
 
-            Button {
-                text: "Next";
+            btn := Button {
+                text: @tr("Next");
                 enabled: false;
 
                 clicked => {

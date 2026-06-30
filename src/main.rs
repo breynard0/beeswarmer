@@ -2,14 +2,15 @@
 
 pub mod appdata;
 pub mod callbacks;
-pub mod savefile;
 pub mod config;
+pub mod savefile;
 
 use crate::appdata::AppState;
 use crate::callbacks::handle_callbacks;
+use crate::config::Config;
+use spdlog::info;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
-use spdlog::info;
 
 slint::include_modules!();
 
@@ -19,6 +20,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut app_data = Arc::new(Mutex::new(AppState::default()));
 
     handle_callbacks(&mut app_data, &ui);
+
+    info!("Loading config");
+    let conf = Config::load_config();
+
+    {
+        let mut guard = app_data.lock().unwrap();
+        guard.french_selected = conf.is_french;
+        ui.set_app_data_slint(guard.clone().into());
+    }
+
+    conf.apply_config();
 
     info!("Starting Beeswarmer");
     ui.run()?;

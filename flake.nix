@@ -82,6 +82,10 @@
               cargo-edit
               cargo-watch
               rust-analyzer
+
+              slint-tr-extractor
+              poedit
+
               self.formatter.${system}
             ] ++ gui_pkgs;
 

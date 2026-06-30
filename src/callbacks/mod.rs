@@ -1,5 +1,6 @@
 use crate::AppWindow;
 use crate::appdata::AppState;
+use crate::config::Config;
 use slint::{ComponentHandle, Weak};
 use spdlog::info;
 use std::sync::{Arc, Mutex};
@@ -59,6 +60,15 @@ pub fn handle_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 }
                 Err(_) => {}
             };
+        });
+    }
+
+    {
+        ui.on_language_changed(|is_french| {
+            let mut c = Config::load_config();
+            c.is_french = is_french;
+            c.apply_config();
+            c.save_config();
         });
     }
 }

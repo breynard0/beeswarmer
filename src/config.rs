@@ -1,4 +1,4 @@
-use spdlog::error;
+use spdlog::{error, warn};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Config {
@@ -39,9 +39,11 @@ impl Config {
     pub fn load_config() -> Self {
         let raw_str = match std::fs::read_to_string(Self::get_config_file_location()) {
             Ok(str) => str,
-            Err(e) => {
-                error!("Failed to read config: {e}");
-                return Self::default();
+            Err(_) => {
+                warn!("Failed to read config, generating");
+                let new_config = Self::default();
+                new_config.save_config();
+                return new_config;
             }
         };
         let maybe_parse = toml::from_str(&raw_str);
@@ -58,5 +60,16 @@ impl Config {
         let mut config = Self::load_config();
         func(&mut config);
         config.save_config()
+    }
+
+    pub fn apply_config(&self) {
+        match self.is_french {
+            true => slint::select_bundled_translation("fr").unwrap_or_else(|err| {
+                error!("Failed to load French locale: {err}");
+            }),
+            false => slint::select_bundled_translation("en").unwrap_or_else(|err| {
+                error!("Failed to load English locale: {err}");
+            }),
+        }
     }
 }

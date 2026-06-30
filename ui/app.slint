@@ -1,5 +1,5 @@
 import { Button, VerticalBox, TabWidget } from "std-widgets.slint";
-import { TabsWidget } from "tabs-widget.slint";
+import { TabsWidget } from "widgets/tabs-widget.slint";
 import { CSVEditor } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
 import { AppStateSlint } from "appstate.slint";
@@ -9,9 +9,10 @@ export component AppWindow inherits Window {
     min-height: 400px;
     default-font-size: 12px;
     title: "Beeswarmer";
-    
+
     callback file-browser(create-new: bool);
     callback reset-data(idx: int);
+    callback language_changed(bool);
 
     in-out property <AppStateSlint> app-data-slint;
 
@@ -19,14 +20,14 @@ export component AppWindow inherits Window {
         tab := TabsWidget {
             height: 40px;
             tab-titles: [
-                "Project Setup",
-                "CSV Editor",
-                "Numerical",
-                "Catagorical",
-                "Scoring",
-                "Generate"
+                @tr("Project Setup"),
+                @tr("CSV Editor"),
+                @tr("Numerical"),
+                @tr("Categorical"),
+                @tr("Scoring"),
+                @tr("Generate")
             ];
-            highest-achieved: 0;
+            highest-achieved: 4;
         }
 
         function general-next() {
@@ -47,6 +48,9 @@ export component AppWindow inherits Window {
             }
             file-browser(create-new) => {
                 file-browser(create-new)
+            }
+            language_changed(fr) => {
+                language_changed(fr)
             }
             next => general-next();
         }

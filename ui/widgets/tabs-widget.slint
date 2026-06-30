@@ -2,8 +2,11 @@ import { Palette } from "std-widgets.slint";
 export component TabsWidget {
     in-out property <[string]> tab-titles;
     in-out property <int> selected-index;
-    in-out property <int> highest-achieved: 5;
+    in-out property <int> highest-achieved;
     height: 60px;
+
+    accessible-role: tab-list;
+    accessible-item-count: tab-titles.length;
 
     for tab-text[index] in tab-titles: Rectangle {
         width: parent.width / tab-titles.length;
@@ -11,6 +14,35 @@ export component TabsWidget {
 
         border-width: 0.5px;
         border-color: Palette.background;
+
+        forward-focus: scope;
+        scope := FocusScope {
+            accessible-role: tab;
+            accessible-label: tab-text;
+            accessible-item-selectable: index <= highest-achieved;
+            accessible-item-selected: selected-index == index;
+            accessible-item-index: index;
+            accessible-action-default => {
+                touch.clicked()
+            }
+            focus-gained(reason) => {
+                parent.border-width = 2px;
+                parent.border-color = Palette.selection-background.darker(0.1);
+            }
+            focus-lost(reason) => {
+                parent.border-width = 0.5px;
+                parent.border-color = Palette.background;
+            }
+            capture-key-pressed(event) => {
+                if (event.text == " " || event.text == "\n") {
+                    touch.clicked();
+                    return EventResult.accept;
+                } else {
+                    return EventResult.reject;
+                }
+            }
+            focus-on-tab-navigation: index <= highest-achieved;
+        }
 
         Text {
             horizontal-alignment: center;

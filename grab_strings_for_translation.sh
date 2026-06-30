@@ -1,0 +1,1 @@
+find ui -name '*.slint' | xargs slint-tr-extractor --join-existing -o beeswarmer.pot
