@@ -1,4 +1,4 @@
-import { Button, VerticalBox, TabWidget } from "std-widgets.slint";
+import { Button, VerticalBox, TabWidget, Palette } from "std-widgets.slint";
 import { TabsWidget } from "widgets/tabs-widget.slint";
 import { CSVEditor } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
@@ -6,8 +6,6 @@ import { AppStateSlint } from "appstate.slint";
 
 export { SetupCallbacks } from "tabs/setup.slint";
 export { AppStateCallbacks } from "appstate.slint";
-
-// TODO: Make next button able to be enabled then add reset logic
 
 export component AppWindow inherits Window {
     min-width: 600px;
@@ -19,17 +17,14 @@ export component AppWindow inherits Window {
 
     in-out property <AppStateSlint> app-data-slint;
 
+    public function sync-theme() {
+        Palette.color-scheme = app-data-slint.dark-selected ? ColorScheme.dark : ColorScheme.light;
+    }
+
     VerticalLayout {
         tab := TabsWidget {
             height: 40px;
-            tab-titles: [
-                @tr("Project Setup"),
-                @tr("CSV Editor"),
-                @tr("Numerical"),
-                @tr("Categorical"),
-                @tr("Scoring"),
-                @tr("Generate")
-            ];
+            tab-titles: [@tr("Project Setup"), @tr("CSV Editor"), @tr("Configuration"), @tr("Results")];
             highest-achieved: 0;
         }
 

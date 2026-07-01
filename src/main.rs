@@ -27,12 +27,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let mut guard = app_data.lock().unwrap();
         guard.french_selected = conf.is_french;
+        guard.dark_selected = conf.is_dark;
         ui.set_app_data_slint(guard.clone().into());
     }
 
     conf.apply_config();
 
     info!("Starting Beeswarmer");
+    ui.invoke_sync_theme();
     ui.run()?;
 
     Ok(())

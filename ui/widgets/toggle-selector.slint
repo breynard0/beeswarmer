@@ -1,7 +1,9 @@
 import { Palette } from "std-widgets.slint";
-export component LanguageSelector {
-    in-out property <bool> french-selected: false;
-    callback language_changed(bool);
+export component ToggleSelector {
+    in-out property <bool> toggle-active: false;
+    callback toggled(bool);
+    in-out property <string> left-title;
+    in-out property <string> right-title;
 
     en_rect := Rectangle {
         x: 0;
@@ -23,16 +25,16 @@ export component LanguageSelector {
     sel_rect := Rectangle {
         background: Palette.selection-background;
         width: parent.width / 2;
-        x: french-selected ? parent.width / 2 - 1px : 0;
-        border-bottom-left-radius: french-selected ? 0px : parent.height / 3;
-        border-top-left-radius: french-selected ? 0px : parent.height / 3;
-        border-bottom-right-radius: !french-selected ? 0px : parent.height / 3;
-        border-top-right-radius: !french-selected ? 0px : parent.height / 3;
+        x: toggle-active ? parent.width / 2 - 1px : 0;
+        border-bottom-left-radius: toggle-active ? 0px : parent.height / 3;
+        border-top-left-radius: toggle-active ? 0px : parent.height / 3;
+        border-bottom-right-radius: !toggle-active ? 0px : parent.height / 3;
+        border-top-right-radius: !toggle-active ? 0px : parent.height / 3;
         animate x, border-bottom-left-radius, border-top-left-radius, border-bottom-right-radius, border-top-right-radius { duration: 100ms; }
     }
 
     Text {
-        text: "EN";
+        text: left-title;
         width: parent.width / 2;
         x: 0;
         horizontal-alignment: center;
@@ -40,7 +42,7 @@ export component LanguageSelector {
     }
 
     Text {
-        text: "FR";
+        text: right-title;
         width: parent.width / 2;
         x: parent.width / 2 - 1px;
         horizontal-alignment: center;
@@ -79,8 +81,8 @@ export component LanguageSelector {
         width: parent.width;
         height: parent.height;
         clicked => {
-            french-selected = !french-selected;
-            language_changed(french-selected)
+            toggle-active = !toggle-active;
+            toggled(toggle-active)
         }
     }
 }

@@ -1,6 +1,14 @@
 import { TabBase } from "tab_base.slint";
+import { Button } from "std-widgets.slint";
+
+export global CSVCallbacks {
+    
+}
+
 export component CSVEditor inherits TabBase {
-    Rectangle {
-        background: blue;
+    VerticalLayout {
+        Button {
+            text: "Import New CSV";
+        }
     }
 }

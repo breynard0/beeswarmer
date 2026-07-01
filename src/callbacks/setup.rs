@@ -65,9 +65,20 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     }
 
     {
-        global.on_language_changed(|is_french| {
+        let ui = ui.as_weak();
+        global.on_language_changed(move |is_french| {
             let mut c = Config::load_config();
             c.is_french = is_french;
+            c.apply_config();
+            c.save_config();
+        });
+    }
+
+    {
+        let ui = ui.as_weak();
+        global.on_theme_changed(move |dark| {
+            let mut c = Config::load_config();
+            c.is_dark = dark;
             c.apply_config();
             c.save_config();
         });
@@ -107,6 +118,6 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                     .map(|x| x.into())
                     .collect::<Vec<slint::SharedString>>(),
             ))
-        });
+        })
     }
 }

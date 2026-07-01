@@ -3,6 +3,7 @@ use spdlog::{error, info, warn};
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Config {
     pub is_french: bool,
+    pub is_dark: bool,
     pub recent_projects: Vec<String>,
 }
 
@@ -48,8 +49,10 @@ impl Config {
         };
         let maybe_parse = toml::from_str(&raw_str);
         maybe_parse.unwrap_or_else(|e| {
-            error!("Failed to parse config file: {e}");
-            Self::default()
+            warn!("Failed to parse config file, regenerating: {e}");
+            let new_config = Self::default();
+            new_config.save_config();
+            return new_config;
         })
     }
 

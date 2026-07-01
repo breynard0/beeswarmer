@@ -1,11 +1,12 @@
 import { Button, LineEdit, ListView, Palette } from "std-widgets.slint";
 import { TabBase } from "tab_base.slint";
 import { AppStateSlint, AppStateCallbacks } from "../appstate.slint";
-import { LanguageSelector } from "../widgets/language-selector.slint";
+import { ToggleSelector } from "../widgets/toggle-selector.slint";
 
 export global SetupCallbacks {
     pure callback get-recent-files() -> [string];
     callback language-changed(bool);
+    callback theme-changed(bool);
     callback file-browser(create-new: bool);
     callback setup-next-button() -> string;
 }
@@ -125,12 +126,26 @@ export component ProjectSetup inherits TabBase {
         HorizontalLayout {
             padding: 8px;
             height: 48px;
+            spacing: 20px;
 
-            LanguageSelector {
+            ToggleSelector {
                 width: 80px;
-                french-selected: data.french-selected;
-                language_changed(fr) => {
+                left-title: "EN";
+                right-title: "FR";
+                toggle-active: data.french-selected;
+                toggled(fr) => {
                     SetupCallbacks.language-changed(fr)
+                }
+            }
+
+            ToggleSelector {
+                width: 80px;
+                left-title: "🌞";
+                right-title: "🌙";
+                toggle-active: data.dark-selected;
+                toggled(dark) => {
+                    Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
+                    SetupCallbacks.theme-changed(dark)
                 }
             }
 
@@ -143,7 +158,7 @@ export component ProjectSetup inherits TabBase {
             }
 
             btn := Button {
-                text: @tr("Next");
+                text: @tr("Load and Continue");
                 enabled: !data.save-file-path.is-empty;
 
                 clicked => {
