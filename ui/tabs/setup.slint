@@ -14,6 +14,10 @@ export global SetupCallbacks {
 export component ProjectSetup inherits TabBase {
     in-out property <AppStateSlint> data;
 
+    changed data => {
+        AppStateCallbacks.sync-appstate(data);
+    }
+
     VerticalLayout {
         padding-left: 40px;
         spacing: 10px;
@@ -25,13 +29,10 @@ export component ProjectSetup inherits TabBase {
                 vertical-alignment: center;
             }
 
-            LineEdit {
+            TextInput {
                 y: 0;
                 text: data.save-file-path;
-                accepted(text) => {
-                    data.save-file-path = text;
-                    AppStateCallbacks.sync-appstate(data)
-                }
+                read-only: true;
             }
 
             Rectangle {
@@ -134,6 +135,7 @@ export component ProjectSetup inherits TabBase {
                 right-title: "FR";
                 toggle-active: data.french-selected;
                 toggled(fr) => {
+                    data.french-selected = fr;
                     SetupCallbacks.language-changed(fr)
                 }
             }
@@ -144,6 +146,7 @@ export component ProjectSetup inherits TabBase {
                 right-title: "🌙";
                 toggle-active: data.dark-selected;
                 toggled(dark) => {
+                    data.dark-selected = dark;
                     Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
                     SetupCallbacks.theme-changed(dark)
                 }
@@ -155,6 +158,8 @@ export component ProjectSetup inherits TabBase {
 
             msg := Text {
                 color: red;
+                wrap: TextWrap.word-wrap;
+                max-width: 400px;
             }
 
             btn := Button {

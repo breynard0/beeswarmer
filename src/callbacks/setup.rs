@@ -3,7 +3,7 @@ use crate::callbacks::sync_appdata;
 use crate::config::Config;
 use crate::{AppWindow, SetupCallbacks};
 use slint::{ComponentHandle, ModelRc, VecModel};
-use spdlog::{error, info};
+use spdlog::{error, info, warn};
 use std::sync::{Arc, Mutex};
 
 pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
@@ -45,7 +45,6 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                                 Ok(_) => info!("New save file created"),
                                 Err(e) => error!("Failed to write save file: {}", e)
                             };
-
                         }
                     } else {
                         info!("Opening file picker dialog");
@@ -65,7 +64,6 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     }
 
     {
-        let ui = ui.as_weak();
         global.on_language_changed(move |is_french| {
             let mut c = Config::load_config();
             c.is_french = is_french;
@@ -75,7 +73,6 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     }
 
     {
-        let ui = ui.as_weak();
         global.on_theme_changed(move |dark| {
             let mut c = Config::load_config();
             c.is_dark = dark;
@@ -87,25 +84,49 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     {
         let data = data.clone();
         global.on_setup_next_button(move || {
+            let mut output = String::new();
             if let Ok(data) = data.lock() {
                 let path = &data.save_file_path;
-                return match std::fs::exists(path) {
+                match std::fs::exists(path) {
                     Ok(res) => {
                         if res {
                             Config::tweak_config(|conf| {
-                                if !conf.recent_projects.contains(path) {
-                                    conf.recent_projects.push(path.clone());
+                                if conf.recent_projects.contains(path) {
+                                    conf.recent_projects.remove(
+                                        conf.recent_projects
+                                            .iter()
+                                            .position(|x| x == path)
+                                            .unwrap(),
+                                    );
                                 }
+                                conf.recent_projects.insert(0, path.clone());
                             });
-                            "yay".into()
+                            return "yay".into();
                         } else {
-                            "Save file not found at provided path".into()
+                            output = match data.french_selected {
+                                true => format!("Fichier des données pas trouvé à {path}"),
+                                false => format!("Save file not found at provided path {path}"),
+                            };
                         }
                     }
-                    Err(e) => format!("Could not verify file path, {e}").into(),
+                    Err(e) => {
+                        output = match data.french_selected {
+                            true => {
+                                format!("Ne peut pas vérifier chemin de fichier, {e}").to_string()
+                            }
+                            false => format!("Could not verify file path, {e}").to_string(),
+                        }
+                    }
                 };
+                if output.is_empty() {
+                    output = match data.french_selected {
+                        true => "Ne pouvais pas barrer systeme de données interne".to_string(),
+                        false => "Failed to gain lock on internal data pipeline".to_string(),
+                    }
+                }
             };
-            "Failed to gain lock on internal data pipeline".into()
+            warn!("{output}");
+            return output.into();
         })
     }
 
