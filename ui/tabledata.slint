@@ -1,0 +1,10 @@
+export enum TableColumnTypeSlint {
+    Unset,
+    Numerical,
+    Categorical,
+    Excluded
+}
+
+export struct TableColumnSlint { title: string, column_type: TableColumnTypeSlint, column_entries: [string]}
+
+export struct TableDataSlint { columns: [TableColumnSlint], excluded_rows: [int], number_rows: int}

@@ -4,6 +4,7 @@ pub mod appdata;
 pub mod callbacks;
 pub mod config;
 pub mod savefile;
+mod table;
 
 use crate::appdata::AppState;
 use crate::callbacks::handle_callbacks;

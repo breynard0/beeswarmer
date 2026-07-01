@@ -1,14 +1,204 @@
 import { TabBase } from "tab_base.slint";
-import { Button } from "std-widgets.slint";
+import {
+    Button,
+    GridBox,
+    ScrollView,
+    ComboBox,
+    TextEdit,
+    LineEdit,
+    Palette,
+    CheckBox,
+} from "std-widgets.slint";
+import {
+    TableDataSlint,
+    TableColumnSlint,
+    TableColumnTypeSlint,
+} from "../tabledata.slint";
+import { TinyTickbox } from "../widgets/tiny-tickbox.slint";
 
-export global CSVCallbacks {
-    
+export global CSVGlobal {
+    out property <length> cell-width: 140px;
+    out property <length> cell-height: 20px;
+    out property <length> checkbox-size: cell-height * 0.7;
+    in-out property <TableDataSlint> data-table: {
+        excluded_rows: [],
+        number_rows: 10,
+        columns: [
+            {
+                title: "Test1",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: ["Yes", "No", "Yes", "Yes", "No", "Yes", "No", "Yes", "Yes", "No"]
+            },
+            {
+                title: "Test2",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: ["Red", "Blue", "Green", "Red", "Blue", "Green", "Red", "Blue", "Green", "Red"]
+            },
+            {
+                title: "Test3",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [12, 45, 7, 23, 89, 34, 56, 2, 78, 19]
+            },
+            {
+                title: "Test4",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [
+                    "Small",
+                    "Medium",
+                    "Large",
+                    "Medium",
+                    "Small",
+                    "Large",
+                    "Large",
+                    "Small",
+                    "Medium",
+                    "Large"
+                ]
+            },
+            {
+                title: "Test5",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [3.5, 7.2, 1.8, 9.4, 2.1, 6.6, 4.3, 8.9, 5.5, 0.7]
+            },
+            {
+                title: "Test6",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [
+                    "North",
+                    "South",
+                    "East",
+                    "West",
+                    "North",
+                    "East",
+                    "South",
+                    "West",
+                    "North",
+                    "East"
+                ]
+            },
+            {
+                title: "Test7",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [100, 250, 75, 300, 150, 225, 50, 175, 275, 125]
+            },
+            {
+                title: "Test8",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [
+                    "Active",
+                    "Inactive",
+                    "Active",
+                    "Pending",
+                    "Active",
+                    "Inactive",
+                    "Pending",
+                    "Active",
+                    "Inactive",
+                    "Pending"
+                ]
+            },
+            {
+                title: "Test9",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [1, 0, 1, 1, 0, 0, 1, 0, 1, 1]
+            },
+            {
+                title: "Test10",
+                column_type: TableColumnTypeSlint.Unset,
+                column_entries: [
+                    "Low",
+                    "High",
+                    "Medium",
+                    "Low",
+                    "High",
+                    "Medium",
+                    "Low",
+                    "High",
+                    "Medium",
+                    "Low"
+                ]
+            }
+        ]
+    };
+    callback sync-data-table(TableDataSlint);
 }
 
 export component CSVEditor inherits TabBase {
     VerticalLayout {
-        Button {
-            text: "Import New CSV";
+//        Button {
+//            text: "Import New CSV";
+//        }
+        editor := ScrollView {
+            viewport-width: CSVGlobal.data-table.columns.length * CSVGlobal.cell-width;
+            viewport-height: (CSVGlobal.data-table.number-rows + 2) * CSVGlobal.cell-height;
+            has-focus: false;
+            mouse-drag-pan-enabled: true;
+
+            for i in CSVGlobal.data-table.number-rows: TinyTickbox {
+                x: CSVGlobal.checkbox-size * 0.25;
+                y: (i + 2.2) * CSVGlobal.cell-height + (CSVGlobal.cell-height - CSVGlobal.checkbox-size) / 2;
+                size: CSVGlobal.checkbox-size;
+            }
+
+            for column[column_index] in CSVGlobal.data-table.columns: Rectangle {
+                width: CSVGlobal.cell-width;
+                height: CSVGlobal.cell-height * 2;
+                x: CSVGlobal.cell-width * column-index + 1.5 * CSVGlobal.checkbox-size;
+                y: 0;
+
+                border-color: Palette.border;
+                border-width: 0.5px;
+
+                VerticalLayout {
+                    Text {
+                        text: column.title;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        width: parent.width;
+                        height: CSVGlobal.cell-height;
+                    }
+
+                    ComboBox {
+                        width: parent.width * 0.9;
+                        x: parent.width * 0.05;
+                        height: CSVGlobal.cell-height;
+                        model: [@tr("Unset"), @tr("Numerical"), @tr("Categorical"), @tr("Excluded")];
+                        selected(current-value) => {
+                            if (current-value == @tr("Unset")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Unset;
+                            } else if (current-value == @tr("Numerical")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Numerical;
+                            } else if (current-value == @tr("Categorical")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Categorical;
+                            } else if (current-value == @tr("Excluded")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Excluded;
+                            }
+                            CSVGlobal.sync-data-table(CSVGlobal.data-table);
+                        }
+                    }
+                }
+
+                for column-entry[row_index] in column.column-entries: Rectangle {
+                    width: CSVGlobal.cell-width;
+                    height: CSVGlobal.cell-height;
+                    y: (row-index + 2.2) * CSVGlobal.cell-height;
+                    border-width: 0.5px;
+                    border-color: Palette.border;
+                    TextInput {
+                        text: column-entry;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        color: CSVGlobal.data-table.columns[column-index].column-type == TableColumnTypeSlint.Excluded ? Palette.foreground.transparentize(0.5) : Palette.foreground;
+                        accepted => {
+                            self.clear-focus();
+                        }
+                        edited => {
+                            CSVGlobal.data-table.columns[column-index].column-entries[row-index] = self.text;
+                            CSVGlobal.sync-data-table(CSVGlobal.data-table);
+                        }
+                    }
+                }
+            }
         }
     }
 }

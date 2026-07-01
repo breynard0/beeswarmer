@@ -1,0 +1,53 @@
+import { Palette } from "std-widgets.slint";
+export component TinyTickbox {
+    in-out property <bool> checked: true;
+    in-out property <length> size: 120px;
+    callback on-toggled(bool);
+
+    width: size;
+    height: size;
+
+    Rectangle {
+        background: parent.checked ? Palette.selection-background : Palette.alternate-background;
+        border-radius: size * 0.3;
+        border-width: max(size / 30, 1px);
+        border-color: focus.has-focus ? Palette.foreground : Palette.border;
+    }
+
+    Text {
+        visible: checked;
+        width: parent.width;
+        height: parent.height;
+        text: "✓";
+        font-size: size * 0.9;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    focus := FocusScope {
+        accessible-label: "Checkbox";
+        accessible-role: checkbox;
+        accessible-checkable: true;
+        accessible-checked: checked;
+
+        focus-on-tab-navigation: true;
+
+        capture-key-pressed(event) => {
+            if (event.text == " " || event.text == "\n") {
+                touch.clicked();
+                return EventResult.accept;
+            } else {
+                return EventResult.reject;
+            }
+        }
+    }
+
+    touch := TouchArea {
+        width: parent.width;
+        height: parent.height;
+
+        clicked => {
+            checked = !checked;
+        }
+    }
+}
