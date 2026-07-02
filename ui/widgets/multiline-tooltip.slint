@@ -1,0 +1,46 @@
+import { Palette } from "std-widgets.slint";
+export component MultilineTooltip inherits TouchArea {
+    in property <string> text;
+    in property <length> popup-width;
+    in property <duration> hover-duration: 500ms;
+
+    popup := PopupWindow {
+        Rectangle {
+            background: Palette.alternate-background;
+            border-width: 1px;
+            border-color: Palette.border;
+            width: parent.width;
+        }
+
+        t := Text {
+            text: text;
+            horizontal-alignment: left;
+            width: popup-width;
+            wrap: word-wrap;
+        }
+
+        x: root.x;
+        y: root.y + root.height;
+        width: min(popup-width, t.width * 1.2);
+        height: t.height * 1.2;
+    }
+
+    timer := Timer {
+        interval: hover-duration;
+        running: false;
+        triggered() => {
+            self.running = false;
+            popup.show()
+        }
+    }
+
+    changed has-hover => {
+        if (self.has-hover) {
+            timer.start();
+            timer.restart()
+        } else {
+            timer.stop();
+            popup.close()
+        }
+    }
+}

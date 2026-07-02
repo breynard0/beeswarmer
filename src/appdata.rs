@@ -4,7 +4,7 @@ use crate::AppStateSlint;
 pub struct AppState {
     pub save_file_path: String,
     pub french_selected: bool,
-    pub dark_selected: bool
+    pub dark_selected: bool,
 }
 
 impl Into<AppStateSlint> for AppState {

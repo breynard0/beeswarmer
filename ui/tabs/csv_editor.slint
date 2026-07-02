@@ -16,6 +16,8 @@ import {
     TestTableData,
 } from "../tabledata.slint";
 import { TinyTickbox } from "../widgets/tiny-tickbox.slint";
+import { MultilineTooltip } from "../widgets/multiline-tooltip.slint";
+import { GridTextbox } from "../widgets/grid-textbox.slint";
 
 export global CSVGlobal {
     out property <length> cell-width: 140px;
@@ -23,15 +25,12 @@ export global CSVGlobal {
     out property <length> checkbox-size: cell-height * 0.7;
     in-out property <TableDataSlint> data-table: TestTableData.data;
     callback get-mutated-excluded-rows([int], bool, int) -> [int];
+    callback import-csv() -> TableDataSlint;
     pure callback table-contains([int], int) -> bool;
-    callback sync-data-table(TableDataSlint);
 }
 
 export component CSVEditor inherits TabBase {
     VerticalLayout {
-//        Button {
-//            text: "Import New CSV";
-//        }
         editor := ScrollView {
             viewport-width: CSVGlobal.data-table.columns.length * CSVGlobal.cell-width;
             viewport-height: (CSVGlobal.data-table.number-rows + 2) * CSVGlobal.cell-height;
@@ -42,8 +41,9 @@ export component CSVEditor inherits TabBase {
                 x: CSVGlobal.checkbox-size * 0.25;
                 y: (i + 2.2) * CSVGlobal.cell-height + (CSVGlobal.cell-height - CSVGlobal.checkbox-size) / 2;
                 size: CSVGlobal.checkbox-size;
+                checked: !CSVGlobal.table-contains(CSVGlobal.data-table.excluded-rows, i);
                 on-toggled(checked) => {
-                    CSVGlobal.get-mutated-excluded-rows(CSVGlobal.data-table.excluded-rows, checked, i);
+                    CSVGlobal.data-table.excluded-rows = CSVGlobal.get-mutated-excluded-rows(CSVGlobal.data-table.excluded-rows, checked, i);
                 }
             }
 
@@ -57,15 +57,24 @@ export component CSVEditor inherits TabBase {
                 border-width: 0.5px;
 
                 VerticalLayout {
-                    HorizontalLayout {
+                    h-layout := HorizontalLayout {
                         x: parent.width * 0.05;
                         width: parent.width * 0.9;
-                        t := Text {
+                        Text {
                             text: column.title;
                             color: CSVGlobal.data-table.columns[column-index].enabled ? Palette.foreground : Palette.foreground.transparentize(0.5);
                             horizontal-alignment: left;
                             vertical-alignment: center;
+                            width: CSVGlobal.cell-width * 0.8;
                             height: CSVGlobal.cell-height;
+                            overflow: TextOverflow.elide;
+                            MultilineTooltip {
+                                width: parent.width;
+                                height: parent.height;
+                                popup-width: h-layout.width;
+                                text: column.title;
+                                hover-duration: 700ms;
+                            }
                         }
 
                         Rectangle {
@@ -75,6 +84,7 @@ export component CSVEditor inherits TabBase {
                         TinyTickbox {
                             size: CSVGlobal.checkbox-size;
                             checked: CSVGlobal.data-table.columns[column-index].enabled;
+                            y: (parent.height - self.size) / 2;
                             on-toggled(checked) => {
                                 CSVGlobal.data-table.columns[column-index].enabled = checked;
                             }
@@ -95,7 +105,6 @@ export component CSVEditor inherits TabBase {
                             } else if (current-value == @tr("Categorical")) {
                                 CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Categorical;
                             }
-                            CSVGlobal.sync-data-table(CSVGlobal.data-table);
                         }
                     }
                 }
@@ -106,28 +115,40 @@ export component CSVEditor inherits TabBase {
                     y: (row-index + 2.2) * CSVGlobal.cell-height;
                     border-width: 0.5px;
                     border-color: Palette.border;
-                    TextInput {
+                    pure function get_text_colour() -> brush {
+                        if (!CSVGlobal.data-table.columns[column-index].enabled || CSVGlobal.table-contains(CSVGlobal.data-table.excluded-rows, row_index)) {
+                            return Palette.foreground.transparentize(0.5);
+                        } else {
+                            return Palette.foreground;
+                        }
+                    }
+                    GridTextbox {
                         text: column-entry;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                        pure function get_text_colour() -> brush {
-                            if (!CSVGlobal.data-table.columns[column-index].enabled || CSVGlobal.table-contains(CSVGlobal.data-table.excluded-rows, row_index)) {
-                                return Palette.foreground.transparentize(0.5);
-                            } else {
-                                return Palette.foreground;
-                            }
-                        }
-                        color: get_text_colour();
-                        read-only: !CSVGlobal.data-table.columns[column-index].enabled;
-                        accepted => {
-                            self.clear-focus();
-                        }
-                        edited => {
-                            CSVGlobal.data-table.columns[column-index].column-entries[row-index] = self.text;
-                            CSVGlobal.sync-data-table(CSVGlobal.data-table);
+                        text-colour: get_text_colour();
+                        read-only: !CSVGlobal.data-table.columns[column-index].enabled || CSVGlobal.table-contains(CSVGlobal.data-table.excluded-rows, row_index);
+                        on-edit(t) => {
+                            CSVGlobal.data-table.columns[column-index].column-entries[row-index] = t;
                         }
                     }
                 }
+            }
+        }
+
+        HorizontalLayout {
+            height: 36px;
+            Button {
+                text: @tr("Import CSV");
+                clicked => {
+                    CSVGlobal.data-table = CSVGlobal.import-csv();
+                }
+            }
+
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+
+            Button {
+                text: @tr("Continue");
             }
         }
     }

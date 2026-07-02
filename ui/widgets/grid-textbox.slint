@@ -1,0 +1,36 @@
+export component GridTextbox inherits Rectangle {
+    in-out property <string> text;
+    in property <brush> text-colour;
+    in property <bool> read-only;
+    callback on-edit(string);
+
+    clip: true;
+
+    TextInput {
+        text: text;
+        horizontal-alignment: left;
+        vertical-alignment: center;
+        color: text-colour;
+        read-only: read-only;
+        single-line: true;
+        width: parent.width;
+        accepted => {
+            self.x = 0px;
+            self.clear-focus();
+        }
+        edited => {
+            on-edit(self.text);
+        }
+        private property <length> margin: 1rem;
+        cursor-position-changed(cursor-position) => {
+            debug(self.x);
+            if (cursor-position.x + self.x < margin) {
+                self.x = - cursor-position.x + margin;
+            } else if (cursor-position.x + self.x > parent.width - margin - self.text-cursor-width) {
+                self.x = parent.width - cursor-position.x - margin - self.text-cursor-width;
+            }
+            self.x = min(self.x, 0);
+            self.width = parent.width - self.x;
+        }
+    }
+}

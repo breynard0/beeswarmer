@@ -1,18 +1,16 @@
 use crate::appdata::AppState;
-use crate::{AppWindow, CSVGlobal};
+use crate::table::TableData;
+use crate::{AppWindow, CSVGlobal, TableDataSlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
-use spdlog::warn;
+use spdlog::{error, warn};
+use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, LockResult, Mutex};
 
 pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     // let ui_handle = ui.as_weak();
 
     let global = ui.global::<CSVGlobal>();
-
-    {
-        // global.on_sync_data_table(|table| {});
-    }
 
     {
         global.on_get_mutated_excluded_rows(|array, checked, row| {
@@ -49,6 +47,32 @@ pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 vec = vec_model_ref.unwrap().iter().collect::<Vec<_>>();
             }
             return vec.contains(&row);
+        });
+    }
+
+    {
+        global.on_import_csv(|| {
+            let result = rfd::FileDialog::new()
+                .add_filter("CSV Data File", &["csv"])
+                .pick_file();
+            if let None = result {
+                warn!("No file selected");
+                return TableDataSlint::default();
+            }
+
+            let read = std::fs::read_to_string(result.unwrap());
+            if let Err(e) = read {
+                error!("Failed to read file: {e}");
+                return TableDataSlint::default();
+            }
+
+            let parse = TableData::from_csv(read.unwrap());
+            if let Err(e) = parse {
+                error!("Failed to parse CSV data: {e}");
+                return TableDataSlint::default();
+            }
+
+            return parse.unwrap().into();
         });
     }
 }
