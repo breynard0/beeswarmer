@@ -1,7 +1,7 @@
 import { Palette } from "std-widgets.slint";
 export component TinyTickbox {
     in-out property <bool> checked: true;
-    in-out property <length> size: 120px;
+    in-out property <length> size: 20px;
     callback on-toggled(bool);
 
     width: size;
@@ -48,6 +48,7 @@ export component TinyTickbox {
 
         clicked => {
             checked = !checked;
+            on-toggled(checked)
         }
     }
 }

@@ -13,6 +13,7 @@ import {
     TableDataSlint,
     TableColumnSlint,
     TableColumnTypeSlint,
+    TestTableData,
 } from "../tabledata.slint";
 import { TinyTickbox } from "../widgets/tiny-tickbox.slint";
 
@@ -20,106 +21,9 @@ export global CSVGlobal {
     out property <length> cell-width: 140px;
     out property <length> cell-height: 20px;
     out property <length> checkbox-size: cell-height * 0.7;
-    in-out property <TableDataSlint> data-table: {
-        excluded_rows: [],
-        number_rows: 10,
-        columns: [
-            {
-                title: "Test1",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: ["Yes", "No", "Yes", "Yes", "No", "Yes", "No", "Yes", "Yes", "No"]
-            },
-            {
-                title: "Test2",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: ["Red", "Blue", "Green", "Red", "Blue", "Green", "Red", "Blue", "Green", "Red"]
-            },
-            {
-                title: "Test3",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [12, 45, 7, 23, 89, 34, 56, 2, 78, 19]
-            },
-            {
-                title: "Test4",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [
-                    "Small",
-                    "Medium",
-                    "Large",
-                    "Medium",
-                    "Small",
-                    "Large",
-                    "Large",
-                    "Small",
-                    "Medium",
-                    "Large"
-                ]
-            },
-            {
-                title: "Test5",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [3.5, 7.2, 1.8, 9.4, 2.1, 6.6, 4.3, 8.9, 5.5, 0.7]
-            },
-            {
-                title: "Test6",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [
-                    "North",
-                    "South",
-                    "East",
-                    "West",
-                    "North",
-                    "East",
-                    "South",
-                    "West",
-                    "North",
-                    "East"
-                ]
-            },
-            {
-                title: "Test7",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [100, 250, 75, 300, 150, 225, 50, 175, 275, 125]
-            },
-            {
-                title: "Test8",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [
-                    "Active",
-                    "Inactive",
-                    "Active",
-                    "Pending",
-                    "Active",
-                    "Inactive",
-                    "Pending",
-                    "Active",
-                    "Inactive",
-                    "Pending"
-                ]
-            },
-            {
-                title: "Test9",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [1, 0, 1, 1, 0, 0, 1, 0, 1, 1]
-            },
-            {
-                title: "Test10",
-                column_type: TableColumnTypeSlint.Unset,
-                column_entries: [
-                    "Low",
-                    "High",
-                    "Medium",
-                    "Low",
-                    "High",
-                    "Medium",
-                    "Low",
-                    "High",
-                    "Medium",
-                    "Low"
-                ]
-            }
-        ]
-    };
+    in-out property <TableDataSlint> data-table: TestTableData.data;
+    callback get-mutated-excluded-rows([int], bool, int) -> [int];
+    pure callback table-contains([int], int) -> bool;
     callback sync-data-table(TableDataSlint);
 }
 
@@ -138,6 +42,9 @@ export component CSVEditor inherits TabBase {
                 x: CSVGlobal.checkbox-size * 0.25;
                 y: (i + 2.2) * CSVGlobal.cell-height + (CSVGlobal.cell-height - CSVGlobal.checkbox-size) / 2;
                 size: CSVGlobal.checkbox-size;
+                on-toggled(checked) => {
+                    CSVGlobal.get-mutated-excluded-rows(CSVGlobal.data-table.excluded-rows, checked, i);
+                }
             }
 
             for column[column_index] in CSVGlobal.data-table.columns: Rectangle {
@@ -150,19 +57,36 @@ export component CSVEditor inherits TabBase {
                 border-width: 0.5px;
 
                 VerticalLayout {
-                    Text {
-                        text: column.title;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                        width: parent.width;
-                        height: CSVGlobal.cell-height;
+                    HorizontalLayout {
+                        x: parent.width * 0.05;
+                        width: parent.width * 0.9;
+                        t := Text {
+                            text: column.title;
+                            color: CSVGlobal.data-table.columns[column-index].enabled ? Palette.foreground : Palette.foreground.transparentize(0.5);
+                            horizontal-alignment: left;
+                            vertical-alignment: center;
+                            height: CSVGlobal.cell-height;
+                        }
+
+                        Rectangle {
+                            horizontal-stretch: 1;
+                        }
+
+                        TinyTickbox {
+                            size: CSVGlobal.checkbox-size;
+                            checked: CSVGlobal.data-table.columns[column-index].enabled;
+                            on-toggled(checked) => {
+                                CSVGlobal.data-table.columns[column-index].enabled = checked;
+                            }
+                        }
                     }
 
                     ComboBox {
+                        enabled: CSVGlobal.data-table.columns[column-index].enabled;
                         width: parent.width * 0.9;
                         x: parent.width * 0.05;
                         height: CSVGlobal.cell-height;
-                        model: [@tr("Unset"), @tr("Numerical"), @tr("Categorical"), @tr("Excluded")];
+                        model: [@tr("Unset"), @tr("Numerical"), @tr("Categorical")];
                         selected(current-value) => {
                             if (current-value == @tr("Unset")) {
                                 CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Unset;
@@ -170,8 +94,6 @@ export component CSVEditor inherits TabBase {
                                 CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Numerical;
                             } else if (current-value == @tr("Categorical")) {
                                 CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Categorical;
-                            } else if (current-value == @tr("Excluded")) {
-                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Excluded;
                             }
                             CSVGlobal.sync-data-table(CSVGlobal.data-table);
                         }
@@ -188,7 +110,15 @@ export component CSVEditor inherits TabBase {
                         text: column-entry;
                         horizontal-alignment: center;
                         vertical-alignment: center;
-                        color: CSVGlobal.data-table.columns[column-index].column-type == TableColumnTypeSlint.Excluded ? Palette.foreground.transparentize(0.5) : Palette.foreground;
+                        pure function get_text_colour() -> brush {
+                            if (!CSVGlobal.data-table.columns[column-index].enabled || CSVGlobal.table-contains(CSVGlobal.data-table.excluded-rows, row_index)) {
+                                return Palette.foreground.transparentize(0.5);
+                            } else {
+                                return Palette.foreground;
+                            }
+                        }
+                        color: get_text_colour();
+                        read-only: !CSVGlobal.data-table.columns[column-index].enabled;
                         accepted => {
                             self.clear-focus();
                         }

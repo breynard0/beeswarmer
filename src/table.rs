@@ -9,8 +9,7 @@ pub struct TableData {
 pub enum TableColumnType {
     Unset,
     Numerical,
-    Categorical,
-    Excluded,
+    Categorical
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -18,6 +17,7 @@ pub struct TableColumn {
     pub title: String,
     pub column_type: TableColumnType,
     pub column_entries: Vec<String>,
+    pub enabled: bool,
 }
 
 impl TableData {
@@ -36,6 +36,7 @@ impl TableData {
                 title: header.to_string(),
                 column_type: TableColumnType::Unset,
                 column_entries: vec![],
+                enabled: true
             });
         }
 
