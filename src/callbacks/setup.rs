@@ -2,15 +2,15 @@ use crate::appdata::AppState;
 use crate::callbacks::sync_appdata;
 use crate::config::Config;
 use crate::{AppWindow, SetupCallbacks};
-use slint::{ComponentHandle, ModelRc, VecModel};
+use slint::{ComponentHandle, ModelRc, VecModel, Weak};
 use spdlog::{error, info, warn};
 use std::sync::{Arc, Mutex};
 
 pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
-    let ui_handle = ui.as_weak();
-
     let global = ui.global::<SetupCallbacks>();
+    set_recent_projects(&ui.as_weak());
     {
+        let ui_handle = ui.as_weak();
         let data = data.clone();
         global.on_file_browser(move |create_new| {
             match data.lock() {
@@ -83,10 +83,12 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
 
     {
         let data = data.clone();
+        let ui_handle = ui.as_weak();
         global.on_setup_next_button(move || {
             let mut output = String::new();
             if let Ok(data) = data.lock() {
                 let path = &data.save_file_path;
+                info!("Loading path {path}");
                 match std::fs::exists(path) {
                     Ok(res) => {
                         if res {
@@ -107,6 +109,17 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                                 true => format!("Fichier des données pas trouvé à {path}"),
                                 false => format!("Save file not found at provided path {path}"),
                             };
+                            Config::tweak_config(|conf| {
+                                if conf.recent_projects.contains(&data.save_file_path) {
+                                    conf.recent_projects.remove(
+                                        conf.recent_projects
+                                            .iter()
+                                            .position(|x| *x == data.save_file_path)
+                                            .unwrap(),
+                                    );
+                                }
+                            });
+                            set_recent_projects(&ui_handle);
                         }
                     }
                     Err(e) => {
@@ -129,16 +142,18 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
             return output.into();
         })
     }
+}
 
-    {
-        global.on_get_recent_files(|| {
-            ModelRc::new(VecModel::from(
-                Config::load_config()
-                    .recent_projects
-                    .iter()
-                    .map(|x| x.into())
-                    .collect::<Vec<slint::SharedString>>(),
-            ))
-        })
-    }
+fn set_recent_projects(ui_handle: &Weak<AppWindow>) {
+    ui_handle
+        .upgrade()
+        .unwrap()
+        .global::<SetupCallbacks>()
+        .set_recent_files(ModelRc::new(VecModel::from(
+            Config::load_config()
+                .recent_projects
+                .iter()
+                .map(|x| x.into())
+                .collect::<Vec<slint::SharedString>>(),
+        )))
 }

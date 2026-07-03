@@ -31,7 +31,7 @@ export component AppWindow inherits Window {
 
         function general-next() {
             tab.selected-index += 1;
-            tab.highest-achieved += 1;
+            tab.highest-achieved = 1;
         }
         function general-reset(idx: int) {
             tab.selected-index = idx;
@@ -50,6 +50,10 @@ export component AppWindow inherits Window {
         if tab.selected-index == 1: CSVEditor {
             font-size: root.default-font-size;
             window-width: root.width;
+            data: app-data-slint;
+            changed data => {
+                app-data-slint = self.data;
+            }
             next => general-next();
         }
     }

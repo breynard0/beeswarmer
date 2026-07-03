@@ -4,7 +4,7 @@ import { AppStateSlint, AppStateCallbacks } from "../appstate.slint";
 import { ToggleSelector } from "../widgets/toggle-selector.slint";
 
 export global SetupCallbacks {
-    pure callback get-recent-files() -> [string];
+    in property <[string]> recent-files;
     callback language-changed(bool);
     callback theme-changed(bool);
     callback file-browser(create-new: bool);
@@ -13,10 +13,6 @@ export global SetupCallbacks {
 
 export component ProjectSetup inherits TabBase {
     in-out property <AppStateSlint> data;
-
-    changed data => {
-        AppStateCallbacks.sync-appstate(data);
-    }
 
     VerticalLayout {
         padding-left: 40px;
@@ -74,7 +70,7 @@ export component ProjectSetup inherits TabBase {
                 border-width: 1px;
                 border-color: Palette.border;
                 ListView {
-                    for entry in SetupCallbacks.get-recent-files(): Rectangle {
+                    for entry in SetupCallbacks.recent-files: Rectangle {
                         background: data.save-file-path == entry ? Palette.selection-background : touch.has-hover ? Palette.control-background.darker(0.8) : Palette.control-background;
                         border-width: 1px;
                         border-color: Palette.border;
@@ -108,6 +104,7 @@ export component ProjectSetup inherits TabBase {
                             height: parent.height;
                             clicked => {
                                 data.save-file-path = entry;
+                                AppStateCallbacks.sync-appstate(data);
                             }
                         }
                     }

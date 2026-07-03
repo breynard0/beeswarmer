@@ -15,6 +15,7 @@ import {
     TableColumnTypeSlint,
     TestTableData,
 } from "../tabledata.slint";
+import { AppStateSlint, AppStateCallbacks } from "../appstate.slint";
 import { TinyTickbox } from "../widgets/tiny-tickbox.slint";
 import { MultilineTooltip } from "../widgets/multiline-tooltip.slint";
 import { GridTextbox } from "../widgets/grid-textbox.slint";
@@ -27,9 +28,17 @@ export global CSVGlobal {
     callback get-mutated-excluded-rows([int], bool, int) -> [int];
     callback import-csv() -> TableDataSlint;
     pure callback table-contains([int], int) -> bool;
+    pure callback check-all-columns-set() -> bool;
+    pure callback check-all-cells-have-value() -> bool;
 }
 
 export component CSVEditor inherits TabBase {
+    in-out property <AppStateSlint> data;
+
+    changed data => {
+        AppStateCallbacks.sync-appstate(data);
+    }
+
     VerticalLayout {
         editor := ScrollView {
             viewport-width: CSVGlobal.data-table.columns.length * CSVGlobal.cell-width;
@@ -137,18 +146,37 @@ export component CSVEditor inherits TabBase {
         HorizontalLayout {
             height: 36px;
             Button {
-                text: @tr("Import CSV");
+                text: @tr("Import New CSV");
                 clicked => {
                     CSVGlobal.data-table = CSVGlobal.import-csv();
                 }
             }
 
-            Rectangle {
+            error-text := Text {
+                text: get-error-text();
                 horizontal-stretch: 1;
+                horizontal-alignment: center;
+                vertical-alignment: center;
             }
 
+            pure function get-error-text() -> string {
+                if (!CSVGlobal.check-all-columns-set()) {
+                    return @tr("Cannot continue, not all enabled columns have their types set");
+                }
+                if (!CSVGlobal.check-all-cells-have-value()) {
+                    return @tr("Cannot continue, at least one enabled cell is missing a value");
+                }
+                return "";
+            }
+
+            pure function check-continue-button-enabled() -> bool {
+                CSVGlobal.check-all-columns-set() && CSVGlobal.check-all-cells-have-value();
+            }
             Button {
                 text: @tr("Continue");
+                enabled: check-continue-button-enabled();
+                clicked => {
+                }
             }
         }
     }
