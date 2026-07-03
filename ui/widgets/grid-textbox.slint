@@ -23,7 +23,6 @@ export component GridTextbox inherits Rectangle {
         }
         private property <length> margin: 1rem;
         cursor-position-changed(cursor-position) => {
-            debug(self.x);
             if (cursor-position.x + self.x < margin) {
                 self.x = - cursor-position.x + margin;
             } else if (cursor-position.x + self.x > parent.width - margin - self.text-cursor-width) {

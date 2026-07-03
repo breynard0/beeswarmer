@@ -1,11 +1,11 @@
 use crate::appdata::AppState;
-use crate::table::TableData;
+use crate::savefile::SaveFile;
+use crate::table::{TableColumn, TableColumnType, TableData};
 use crate::{AppWindow, CSVGlobal, TableDataSlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
 use spdlog::{error, warn};
-use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::{Arc, LockResult, Mutex};
+use std::sync::{Arc, Mutex};
 
 pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     // let ui_handle = ui.as_weak();
@@ -74,5 +74,54 @@ pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
 
             return parse.unwrap().into();
         });
+    }
+
+    {
+        global.on_save_table(move |table, path| {
+            if path.is_empty() {
+                error!("No save file path found in CSV Editor stage");
+                return;
+            }
+
+            SaveFile::tweak_savefile(path.into(), move |savefile| {
+                savefile.table_data = Some(table.into());
+            })
+        });
+    }
+
+    {
+        global.on_check_all_cells_have_value(|table_data_slint| {
+            let table = TableData::from(table_data_slint);
+
+            let mut all_set = true;
+            table.columns.iter().for_each(|column| {
+                column
+                    .column_entries
+                    .iter()
+                    .enumerate()
+                    .for_each(|(idx, s)| {
+                        if s.is_empty() && !table.excluded_rows.contains(&(idx as u32)) {
+                            all_set = false;
+                        }
+                    })
+            });
+
+            all_set
+        })
+    }
+
+    {
+        global.on_check_all_columns_set(|table_data_slint| {
+            let columns = table_data_slint
+                .columns
+                .iter()
+                .map(|x| TableColumn::from(x))
+                .collect::<Vec<_>>();
+            let out = columns
+                .iter()
+                .find(|col| col.column_type == TableColumnType::Unset && col.enabled)
+                .is_none();
+            out
+        })
     }
 }

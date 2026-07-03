@@ -8,7 +8,7 @@ pub struct TableData {
     pub number_rows: u32,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub enum TableColumnType {
     Unset,
     Numerical,
@@ -90,15 +90,21 @@ impl TableData {
     }
 }
 
+impl From<TableColumnTypeSlint> for TableColumnType {
+    fn from(value: TableColumnTypeSlint) -> Self {
+        match value {
+            TableColumnTypeSlint::Unset => TableColumnType::Unset,
+            TableColumnTypeSlint::Numerical => TableColumnType::Numerical,
+            TableColumnTypeSlint::Categorical => TableColumnType::Categorical,
+        }
+    }
+}
+
 impl From<TableColumnSlint> for TableColumn {
     fn from(value: TableColumnSlint) -> Self {
         Self {
             title: value.title.to_string(),
-            column_type: match value.column_type {
-                TableColumnTypeSlint::Unset => TableColumnType::Unset,
-                TableColumnTypeSlint::Numerical => TableColumnType::Numerical,
-                TableColumnTypeSlint::Categorical => TableColumnType::Categorical,
-            },
+            column_type: TableColumnType::from(value.column_type),
             column_entries: value
                 .column_entries
                 .iter()

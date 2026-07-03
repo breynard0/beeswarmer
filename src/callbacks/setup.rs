@@ -1,7 +1,8 @@
 use crate::appdata::AppState;
 use crate::callbacks::sync_appdata;
 use crate::config::Config;
-use crate::{AppWindow, SetupCallbacks};
+use crate::savefile::SaveFile;
+use crate::{AppWindow, CSVGlobal, SetupCallbacks};
 use slint::{ComponentHandle, ModelRc, VecModel, Weak};
 use spdlog::{error, info, warn};
 use std::sync::{Arc, Mutex};
@@ -103,6 +104,15 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                                 }
                                 conf.recent_projects.insert(0, path.clone());
                             });
+
+                            let savefile = SaveFile::load_savefile(path.clone());
+                            if let Some(table) = savefile.table_data {
+                                ui_handle
+                                    .upgrade()
+                                    .unwrap()
+                                    .global::<CSVGlobal>()
+                                    .set_data_table(table.into());
+                            }
                             return "yay".into();
                         } else {
                             output = match data.french_selected {
