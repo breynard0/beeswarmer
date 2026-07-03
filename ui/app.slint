@@ -15,6 +15,7 @@ export component AppWindow inherits Window {
     title: "Beeswarmer";
 
     callback reset-data(idx: int);
+    callback on-quit();
 
     in-out property <AppStateSlint> app-data-slint;
 

@@ -1,7 +1,7 @@
 use crate::appdata::AppState;
 use crate::savefile::SaveFile;
 use crate::table::{TableColumn, TableColumnType, TableData};
-use crate::{AppWindow, CSVGlobal, TableDataSlint};
+use crate::{AppWindow, CSVGlobal, CheckResultSlint, TableDataSlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
 use spdlog::{error, warn};
 use std::rc::Rc;
@@ -93,25 +93,43 @@ pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
         global.on_check_all_cells_have_value(|table_data_slint| {
             let table = TableData::from(table_data_slint);
 
-            let mut all_set = true;
-            table.columns.iter().for_each(|column| {
-                column
-                    .column_entries
-                    .iter()
-                    .enumerate()
-                    .for_each(|(idx, s)| {
-                        if s.is_empty() && !table.excluded_rows.contains(&(idx as u32)) {
-                            all_set = false;
-                        }
-                    })
-            });
+            let mut all_correct = true;
+            let mut x = -1;
+            let mut y = -1;
+            table
+                .columns
+                .iter()
+                .enumerate()
+                .for_each(|(column_x, column)| {
+                    column
+                        .column_entries
+                        .iter()
+                        .enumerate()
+                        .for_each(|(idx, s)| {
+                            if all_correct {
+                                if s.is_empty()
+                                    && !table.excluded_rows.contains(&(idx as u32))
+                                    && column.enabled
+                                {
+                                    all_correct = false;
+                                    x = column_x as i32;
+                                    y = idx as i32;
+                                }
+                            }
+                        })
+                });
 
-            all_set
+            CheckResultSlint {
+                ok: all_correct,
+                x,
+                y,
+            }
         })
     }
 
     {
         global.on_check_all_columns_set(|table_data_slint| {
+            let mut x = -1;
             let columns = table_data_slint
                 .columns
                 .iter()
@@ -121,7 +139,42 @@ pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 .iter()
                 .find(|col| col.column_type == TableColumnType::Unset && col.enabled)
                 .is_none();
-            out
+            if out == false {
+                x = columns
+                    .iter()
+                    .position(|col| col.column_type == TableColumnType::Unset && col.enabled)
+                    .unwrap() as i32;
+            }
+            CheckResultSlint { ok: out, x, y: -1 }
+        })
+    }
+
+    {
+        global.on_check_numerical_check(|table_data_slint| {
+            let data = TableData::from(table_data_slint);
+            let mut all_correct = true;
+            let mut x = -1;
+            let mut y = -1;
+            for (column_idx, col) in data.columns.iter().enumerate() {
+                if !col.enabled {
+                    continue;
+                }
+                if let TableColumnType::Numerical = col.column_type {
+                    col.column_entries.iter().enumerate().for_each(|(idx, s)| {
+                        let res: Result<f64, _> = s.parse();
+                        if res.is_err() && !data.excluded_rows.contains(&(idx as u32)) {
+                            all_correct = false;
+                            x = column_idx as i32;
+                            y = idx as i32;
+                        }
+                    })
+                }
+            }
+            CheckResultSlint {
+                ok: all_correct,
+                x,
+                y,
+            }
         })
     }
 }
