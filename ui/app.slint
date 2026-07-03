@@ -35,13 +35,16 @@ export component AppWindow inherits Window {
         }
         function general-reset(idx: int) {
             tab.selected-index = idx;
-            tab.highest-achieved += idx;
+            tab.highest-achieved = idx;
         }
 
         if tab.selected-index == 0: ProjectSetup {
             font-size: root.default-font-size;
             window-width: root.width;
             data: app-data-slint;
+            reset-to-here() => {
+                general-reset(0);
+            }
             changed data => {
                 app-data-slint = self.data;
             }

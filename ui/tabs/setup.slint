@@ -13,6 +13,7 @@ export global SetupCallbacks {
 
 export component ProjectSetup inherits TabBase {
     in-out property <AppStateSlint> data;
+    callback reset-to-here();
 
     VerticalLayout {
         padding-left: 40px;
@@ -42,6 +43,7 @@ export component ProjectSetup inherits TabBase {
                 text: @tr("Open File");
                 horizontal-stretch: 1;
                 clicked => {
+                    reset-to-here();
                     SetupCallbacks.file-browser(false)
                 }
             }
@@ -50,6 +52,7 @@ export component ProjectSetup inherits TabBase {
                 text: @tr("New Project");
                 horizontal-stretch: 1;
                 clicked => {
+                    reset-to-here();
                     SetupCallbacks.file-browser(true)
                 }
             }
@@ -103,6 +106,7 @@ export component ProjectSetup inherits TabBase {
                             width: parent.width;
                             height: parent.height;
                             clicked => {
+                                reset-to-here();
                                 data.save-file-path = entry;
                                 AppStateCallbacks.sync-appstate(data);
                             }
