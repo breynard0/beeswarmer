@@ -26,7 +26,7 @@ export global CSVGlobal {
     out property <length> cell-width: 140px;
     out property <length> cell-height: 20px;
     out property <length> checkbox-size: cell-height * 0.7;
-    in-out property <TableDataSlint> data-table;
+    in-out property <TableDataSlint> data-table: TestTableData.data;
     callback get-mutated-excluded-rows([int], bool, int) -> [int];
     callback import-csv() -> TableDataSlint;
     pure callback table-contains([int], int) -> bool;
@@ -87,11 +87,11 @@ export component CSVEditor inherits TabBase {
     }
 
     private property <bool> check-continue-button-enabled: false;
-    init => {
-        set-check-continue-button-enabled()
-    }
 
     VerticalLayout {
+        padding-bottom: 10px;
+        padding-left: 4px;
+        padding-right: 4px;
         editor := ScrollView {
             viewport-width: (CSVGlobal.data-table.columns.length + 1) * CSVGlobal.cell-width;
             viewport-height: (CSVGlobal.data-table.number-rows + 2) * CSVGlobal.cell-height;
@@ -178,6 +178,7 @@ export component CSVEditor inherits TabBase {
                         ComboBox {
                             enabled: CSVGlobal.data-table.columns[column-index].enabled;
                             width: parent.width;
+                            height: parent.height;
                             model: [@tr("Unset"), @tr("Numerical"), @tr("Categorical")];
                             current-value: column-type-to-string(CSVGlobal.data-table.columns[column-index].column_type);
                             selected(current-value) => {
@@ -226,6 +227,7 @@ export component CSVEditor inherits TabBase {
 
         HorizontalLayout {
             height: 36px;
+            spacing: 3px;
             Button {
                 text: @tr("Import New CSV");
                 clicked => {
@@ -246,7 +248,11 @@ export component CSVEditor inherits TabBase {
             Button {
                 text: @tr("Continue");
                 enabled: check-continue-button-enabled;
+                init => {
+                    check-continue-button-enabled = set-check-continue-button-enabled()
+                }
                 clicked => {
+                    root.next()
                 }
             }
         }

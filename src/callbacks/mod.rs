@@ -1,11 +1,13 @@
 pub mod setup;
 pub mod csv;
+pub mod configuration;
 
 use crate::appdata::AppState;
 use crate::callbacks::setup::setup_callbacks;
 use crate::{AppStateCallbacks, AppWindow};
 use slint::{ComponentHandle, Weak};
 use std::sync::{Arc, Mutex};
+use crate::callbacks::configuration::configuration_callbacks;
 use crate::callbacks::csv::csv_callbacks;
 
 fn sync_appdata(ui_handle: &Weak<AppWindow>, app_data: &AppState) {
@@ -29,4 +31,5 @@ pub fn handle_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
 
     setup_callbacks(data, ui);
     csv_callbacks(data, ui);
+    configuration_callbacks(data, ui);
 }

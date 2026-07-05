@@ -1,0 +1,69 @@
+import { Palette } from "std-widgets.slint";
+export component NSelector inherits Rectangle {
+    in property <[string]> selection-values: ["thing1", "thing2", "thing3"];
+    in-out property <int> selection-idx;
+
+    private property <length> corner-radius: self.height / 4;
+
+    background: Palette.alternate-background;
+    border-radius: corner-radius;
+    border-width: 1px;
+    border-color: Palette.border;
+
+    // Selection Rectangle
+    private property <length> selection-rect-width: root.width / selection-values.length;
+    Rectangle {
+        border-radius: corner-radius;
+        background: Palette.selection-background;
+        width: selection-rect-width;
+        x: selection-idx * selection-rect-width;
+        animate x { duration: 40ms; }
+        border-width: 1px;
+        border-color: Palette.border;
+    }
+
+    for title[my-idx] in selection-values: Rectangle {
+        border-radius: corner-radius;
+        width: selection-rect-width;
+        x: selection-rect-width * my-idx;
+        Text {
+            text: title;
+            width: parent.width;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            overflow: TextOverflow.clip;
+        }
+
+        focus := FocusScope {
+            accessible-label: "Mode Tab Selection";
+            accessible-role: tab;
+            focus-on-tab-navigation: true;
+
+            focus-gained(reason) => {
+                parent.border-width = 1px;
+                parent.border-color = Palette.foreground;
+            }
+
+            focus-lost(reason) => {
+                parent.border-width = 0px;
+            }
+
+            capture-key-pressed(event) => {
+                if (event.text == " " || event.text == "\n") {
+                    touch.clicked();
+                    return EventResult.accept;
+                } else {
+                    return EventResult.reject;
+                }
+            }
+        }
+
+        touch := TouchArea {
+            width: parent.width;
+            height: parent.height;
+            clicked => {
+                selection-idx = my-idx;
+            }
+        }
+    }
+}

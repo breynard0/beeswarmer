@@ -3,10 +3,12 @@ import { TabsWidget } from "widgets/tabs-widget.slint";
 import { CSVEditor } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
 import { AppStateSlint } from "appstate.slint";
+import { Configuration } from "tabs/configuration.slint";
 
 export { AppStateCallbacks } from "appstate.slint";
 export { SetupCallbacks } from "tabs/setup.slint";
 export { CSVGlobal } from "tabs/csv_editor.slint";
+export { ConfigurationGlobal } from "tabs/configuration.slint";
 
 export component AppWindow inherits Window {
     min-width: 600px;
@@ -30,9 +32,9 @@ export component AppWindow inherits Window {
             highest-achieved: 0;
         }
 
-        function general-next() {
+        function general-next(tab_idx: int) {
             tab.selected-index += 1;
-            tab.highest-achieved = 1;
+            tab.highest-achieved = tab_idx + 1;
         }
         function general-reset(idx: int) {
             tab.selected-index = idx;
@@ -49,7 +51,7 @@ export component AppWindow inherits Window {
             changed data => {
                 app-data-slint = self.data;
             }
-            next => general-next();
+            next => general-next(0);
         }
         if tab.selected-index == 1: CSVEditor {
             font-size: root.default-font-size;
@@ -58,7 +60,18 @@ export component AppWindow inherits Window {
             changed data => {
                 app-data-slint = self.data;
             }
-            next => general-next();
+            next => general-next(1);
+        }
+
+        if tab.selected-index == 2: conf := Configuration {
+            font-size: root.default-font-size;
+            window-width: root.width;
+            data: app-data-slint;
+            changed data => {
+                app-data-slint = self.data;
+            }
+
+            next => general-next(2);
         }
     }
 }

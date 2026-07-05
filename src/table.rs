@@ -1,7 +1,7 @@
 use crate::{TableColumnSlint, TableColumnTypeSlint, TableDataSlint};
 use slint::{Model, ModelRc, SharedString, VecModel};
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Default, Clone)]
 pub struct TableData {
     pub columns: Vec<TableColumn>,
     pub excluded_rows: Vec<u32>,

@@ -1,0 +1,82 @@
+import { TabBase } from "tab_base.slint";
+import { AppStateSlint } from "../appstate.slint";
+import { NSelector } from "../widgets/n-selector.slint";
+import { Button, ComboBox } from "std-widgets.slint";
+
+export global ConfigurationGlobal {
+    callback get-numerical-column-names() -> [string];
+    callback get-binary-column-names() -> [string];
+}
+
+export component Configuration inherits TabBase {
+    in-out property <AppStateSlint> data;
+
+    private property <string> simple_selected: "Unset";
+    private property <[string]> numerical_col_names;
+    private property <[string]> binary_col_names;
+
+    init => {
+        invoke-init()
+    }
+
+    public function invoke-init() {
+        numerical_col_names = ConfigurationGlobal.get-numerical-column-names();
+        binary_col_names = ConfigurationGlobal.get-binary-column-names();
+    }
+
+    VerticalLayout {
+        width: root.width * 0.9;
+        padding-top: 20px;
+        padding-bottom: 10px;
+        spacing: 20px;
+        tabs := NSelector {
+            selection-values: [
+                @tr("Simple Regression"),
+                @tr("Scored Regression"),
+                @tr("Binary Classification")
+            ];
+            height: 2rem;
+        }
+
+        // Simple regression
+        if tabs.selection-idx == 0: VerticalLayout {
+            spacing: 8px;
+            Text {
+                text: @tr("Select numerical column representing the independent variable");
+                wrap: word-wrap;
+            }
+
+            ComboBox {
+                model: numerical_col_names;
+            }
+        }
+
+        // Binary classification
+        if tabs.selection-idx == 2: VerticalLayout {
+            spacing: 8px;
+            Text {
+                text: @tr("Select categorical column that contains only two values representing the independent variable");
+                wrap: word-wrap;
+            }
+
+            ComboBox {
+                model: binary_col_names;
+            }
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+        }
+
+        HorizontalLayout {
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+
+            Button {
+                enabled: simple_selected != "Unset";
+                text: "Continue";
+            }
+        }
+    }
+}
