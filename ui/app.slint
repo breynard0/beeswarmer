@@ -3,7 +3,7 @@ import { TabsWidget } from "widgets/tabs-widget.slint";
 import { CSVEditor } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
 import { AppStateSlint } from "appstate.slint";
-import { Configuration } from "tabs/configuration.slint";
+import { Configuration, ConfigurationGlobal } from "tabs/configuration.slint";
 
 export { AppStateCallbacks } from "appstate.slint";
 export { SetupCallbacks } from "tabs/setup.slint";
@@ -57,6 +57,12 @@ export component AppWindow inherits Window {
             font-size: root.default-font-size;
             window-width: root.width;
             data: app-data-slint;
+            reset-to-here() => {
+                general-reset(1);
+                ConfigurationGlobal.save-simple-selected("Unset");
+                // TODO: Fill in scored regression here
+                ConfigurationGlobal.save-binary-selected("Unset");
+            }
             changed data => {
                 app-data-slint = self.data;
             }

@@ -1,3 +1,4 @@
+use crate::SLASH;
 use spdlog::{error, info, warn};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -6,11 +7,6 @@ pub struct Config {
     pub is_dark: bool,
     pub recent_projects: Vec<String>,
 }
-
-#[cfg(target_os = "windows")]
-const SLASH: char = '\\';
-#[cfg(not(target_os = "windows"))]
-const SLASH: char = '/';
 
 impl Config {
     pub fn get_config_file_location() -> String {

@@ -6,22 +6,26 @@ import { Button, ComboBox } from "std-widgets.slint";
 export global ConfigurationGlobal {
     callback get-numerical-column-names() -> [string];
     callback get-binary-column-names() -> [string];
+    callback load-simple-selected() -> string;
+    callback load-binary-selected() -> string;
+    callback save-simple-selected(string);
+    callback save-binary-selected(string);
 }
 
 export component Configuration inherits TabBase {
     in-out property <AppStateSlint> data;
 
     private property <string> simple_selected: "Unset";
+    private property <string> binary_selected: "Unset";
+
     private property <[string]> numerical_col_names;
     private property <[string]> binary_col_names;
 
     init => {
-        invoke-init()
-    }
-
-    public function invoke-init() {
         numerical_col_names = ConfigurationGlobal.get-numerical-column-names();
         binary_col_names = ConfigurationGlobal.get-binary-column-names();
+        simple_selected = ConfigurationGlobal.load-simple-selected();
+        binary_selected = ConfigurationGlobal.load-binary-selected();
     }
 
     VerticalLayout {
@@ -48,6 +52,11 @@ export component Configuration inherits TabBase {
 
             ComboBox {
                 model: numerical_col_names;
+                current-value: simple_selected;
+                selected(current-value) => {
+                    simple_selected = current-value;
+                    ConfigurationGlobal.save-simple-selected(simple_selected)
+                }
             }
         }
 
@@ -61,6 +70,11 @@ export component Configuration inherits TabBase {
 
             ComboBox {
                 model: binary_col_names;
+                current-value: binary_selected;
+                selected(current-value) => {
+                    binary_selected = current-value;
+                    ConfigurationGlobal.save-binary-selected(binary_selected)
+                }
             }
         }
 
@@ -74,7 +88,7 @@ export component Configuration inherits TabBase {
             }
 
             Button {
-                enabled: simple_selected != "Unset";
+                enabled: (simple_selected != "Unset" && tabs.selection-idx == 0) || (binary_selected != "Unset" && tabs.selection-idx == 2);
                 text: "Continue";
             }
         }

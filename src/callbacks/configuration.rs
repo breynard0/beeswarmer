@@ -22,6 +22,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     .filter(|col| col.enabled && col.column_type == TableColumnType::Numerical)
                     .map(|col| col.title.clone().into())
                     .collect();
+                out.insert(0, "Unset".into())
             }
             ModelRc::new(VecModel::from(out))
         })
@@ -45,7 +46,9 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                             && || -> bool {
                                 let mut seen_strings = vec![];
                                 for (idx, s) in col.column_entries.iter().enumerate() {
-                                    if !seen_strings.contains(s) && !excluded_rows.contains(&(idx as u32)) {
+                                    if !seen_strings.contains(s)
+                                        && !excluded_rows.contains(&(idx as u32))
+                                    {
                                         seen_strings.push(s.clone());
                                     }
                                 }
@@ -54,8 +57,61 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     })
                     .map(|col| col.title.clone().into())
                     .collect();
+                out.insert(0, "Unset".into())
             }
             ModelRc::new(VecModel::from(out))
+        })
+    }
+
+    {
+        let data = data.clone();
+        global.on_load_simple_selected(move || {
+            let mut out = String::new();
+            if let Ok(handle) = data.lock() {
+                let save_file = SaveFile::load_savefile(handle.save_file_path.clone());
+                out = save_file
+                    .conf_settings
+                    .simple_regression_column
+                    .unwrap_or_else(|| "Unset".to_string());
+            }
+            out.into()
+        })
+    }
+
+    {
+        let data = data.clone();
+        global.on_load_binary_selected(move || {
+            let mut out = String::new();
+            if let Ok(handle) = data.lock() {
+                let save_file = SaveFile::load_savefile(handle.save_file_path.clone());
+                out = save_file
+                    .conf_settings
+                    .binary_regression_column
+                    .unwrap_or_else(|| "Unset".to_string());
+            }
+            out.into()
+        })
+    }
+
+    {
+        let data = data.clone();
+        global.on_save_simple_selected(move |s| {
+            if let Ok(handle) = data.lock() {
+                SaveFile::tweak_savefile(handle.save_file_path.clone(), |savefile| {
+                    savefile.conf_settings.simple_regression_column = Some(s.into());
+                });
+            }
+        })
+    }
+
+    {
+        let data = data.clone();
+        global.on_save_binary_selected(move |s| {
+            if let Ok(handle) = data.lock() {
+                SaveFile::tweak_savefile(handle.save_file_path.clone(), |savefile| {
+                    savefile.conf_settings.binary_regression_column = Some(s.into());
+                });
+            }
         })
     }
 }

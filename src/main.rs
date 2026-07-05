@@ -13,6 +13,11 @@ use spdlog::info;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 
+#[cfg(target_os = "windows")]
+pub const SLASH: char = '\\';
+#[cfg(not(target_os = "windows"))]
+pub const SLASH: char = '/';
+
 slint::include_modules!();
 
 fn main() -> Result<(), Box<dyn Error>> {

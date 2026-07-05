@@ -5,9 +5,9 @@ use crate::{AppWindow, CSVGlobal, CheckResultSlint, TableDataSlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
 use spdlog::{error, warn};
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
-pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
+pub fn csv_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     // let ui_handle = ui.as_weak();
 
     let global = ui.global::<CSVGlobal>();
@@ -51,24 +51,40 @@ pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     }
 
     {
-        global.on_import_csv(|| {
+        let data = data.clone();
+        global.on_import_csv(move || {
             let result = rfd::FileDialog::new()
                 .add_filter("CSV Data File", &["csv"])
                 .pick_file();
             if let None = result {
                 warn!("No file selected");
+                if let Ok(handle) = data.try_lock() {
+                    if let Some(value) = return_table_if_exists(handle) {
+                        return value;
+                    }
+                }
                 return TableDataSlint::default();
             }
 
             let read = std::fs::read_to_string(result.unwrap());
             if let Err(e) = read {
                 error!("Failed to read file: {e}");
+                if let Ok(handle) = data.try_lock() {
+                    if let Some(value) = return_table_if_exists(handle) {
+                        return value;
+                    }
+                }
                 return TableDataSlint::default();
             }
 
             let parse = TableData::from_csv(read.unwrap());
             if let Err(e) = parse {
                 error!("Failed to parse CSV data: {e}");
+                if let Ok(handle) = data.try_lock() {
+                    if let Some(value) = return_table_if_exists(handle) {
+                        return value;
+                    }
+                }
                 return TableDataSlint::default();
             }
 
@@ -177,4 +193,11 @@ pub fn csv_callbacks(_data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
             }
         })
     }
+}
+
+fn return_table_if_exists(handle: MutexGuard<AppState>) -> Option<TableDataSlint> {
+    if let Some(out) = SaveFile::load_savefile(handle.save_file_path.clone()).table_data {
+        return Some(out.into());
+    }
+    None
 }

@@ -42,6 +42,11 @@ export component CSVEditor inherits TabBase {
     private property <int> error_x: -1;
     private property <int> error_y: -1;
 
+    callback reset-to-here();
+    changed data => {
+        reset-to-here()
+    }
+
     // Save with no activity for a period of time
     save-timer := Timer {
         interval: 1s;
@@ -69,6 +74,9 @@ export component CSVEditor inherits TabBase {
         } else if (!numerical-check.ok) {
             error_x = numerical-check.x;
             error_y = numerical-check.y;
+        } else {
+            error_x = -1;
+            error_y = -1;
         }
         all-columns-set.ok && all-cells-have-value.ok && numerical-check.ok;
     }
@@ -108,6 +116,7 @@ export component CSVEditor inherits TabBase {
                     start-save-timer();
                     error-text.text = get-error-text();
                     check-continue-button-enabled = set-check-continue-button-enabled();
+                    reset-to-here()
                 }
             }
 
@@ -154,6 +163,7 @@ export component CSVEditor inherits TabBase {
                                 start-save-timer();
                                 error-text.text = get-error-text();
                                 check-continue-button-enabled = set-check-continue-button-enabled();
+                                reset-to-here()
                             }
                         }
                     }
@@ -192,6 +202,7 @@ export component CSVEditor inherits TabBase {
                                 start-save-timer();
                                 error-text.text = get-error-text();
                                 check-continue-button-enabled = set-check-continue-button-enabled();
+                                reset-to-here()
                             }
                         }
                     }
@@ -219,6 +230,7 @@ export component CSVEditor inherits TabBase {
                             start-save-timer();
                             error-text.text = get-error-text();
                             check-continue-button-enabled = set-check-continue-button-enabled();
+                            reset-to-here()
                         }
                     }
                 }
@@ -235,6 +247,7 @@ export component CSVEditor inherits TabBase {
                     start-save-timer();
                     error-text.text = get-error-text();
                     check-continue-button-enabled = set-check-continue-button-enabled();
+                    reset-to-here()
                 }
             }
 
