@@ -1,4 +1,6 @@
+use crate::ScoredRegressionEntrySlint;
 use crate::table::TableData;
+use slint::{Model, ModelRc, VecModel};
 use spdlog::{error, warn};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -47,8 +49,45 @@ impl SaveFile {
     }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Default, Clone)]
+pub struct ScoredRegressionEntry {
+    pub column_title: String,
+    pub correct_answer: String,
+    pub answers: Vec<String>,
+    pub correct_points: u32,
+    pub incorrect_points: u32,
+}
+
+impl Into<ScoredRegressionEntrySlint> for ScoredRegressionEntry {
+    fn into(self) -> ScoredRegressionEntrySlint {
+        ScoredRegressionEntrySlint {
+            column_title: self.column_title.into(),
+            correct_answer: self.correct_answer.into(),
+            answers: ModelRc::new(VecModel::from(
+                self.answers.iter().map(|s| s.into()).collect::<Vec<_>>(),
+            )),
+            correct_points: self.correct_points as i32,
+            incorrect_points: self.incorrect_points as i32,
+        }
+    }
+}
+
+impl From<ScoredRegressionEntrySlint> for ScoredRegressionEntry {
+    fn from(value: ScoredRegressionEntrySlint) -> Self {
+        Self {
+            column_title: value.column_title.to_string(),
+            correct_answer: value.correct_answer.to_string(),
+            answers: value.answers.iter().map(|s| s.to_string()).collect(),
+            correct_points: value.correct_points as u32,
+            incorrect_points: value.incorrect_points as u32,
+        }
+    }
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct ConfigurationSettings {
+    pub tab_selected: u32,
     pub simple_regression_column: Option<String>,
+    pub scored_regression_data: Vec<ScoredRegressionEntry>,
     pub binary_regression_column: Option<String>,
 }

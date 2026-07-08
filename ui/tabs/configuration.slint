@@ -1,31 +1,59 @@
 import { TabBase } from "tab_base.slint";
 import { AppStateSlint } from "../appstate.slint";
 import { NSelector } from "../widgets/n-selector.slint";
-import { Button, ComboBox } from "std-widgets.slint";
+import {
+    Button,
+    ComboBox,
+    ScrollView,
+    Palette,
+    SpinBox,
+    GridBox,
+} from "std-widgets.slint";
+
+export struct ScoredRegressionEntrySlint {
+    column-title: string,
+    answers: [string],
+    correct-answer: string,
+    correct-points: int,
+    incorrect-points: int
+}
 
 export global ConfigurationGlobal {
     callback get-numerical-column-names() -> [string];
+    callback get-categorical-column-names() -> [string];
     callback get-binary-column-names() -> [string];
     callback load-simple-selected() -> string;
+    callback load-scored-regression-entries() -> [ScoredRegressionEntrySlint];
     callback load-binary-selected() -> string;
+    callback load-tab-selected() -> int;
     callback save-simple-selected(string);
     callback save-binary-selected(string);
+    callback save-scored-regression-entries([ScoredRegressionEntrySlint]);
+    callback save-tab-selected(int);
+    callback add-scored-regression-entry(string, [ScoredRegressionEntrySlint]) -> [ScoredRegressionEntrySlint];
+    callback remove-scored-regression-entry(string, [ScoredRegressionEntrySlint]) -> [ScoredRegressionEntrySlint];
 }
 
 export component Configuration inherits TabBase {
     in-out property <AppStateSlint> data;
 
-    private property <string> simple_selected: "Unset";
-    private property <string> binary_selected: "Unset";
+    private property <string> simple-selected: "Unset";
+    private property <string> binary-selected: "Unset";
 
-    private property <[string]> numerical_col_names;
-    private property <[string]> binary_col_names;
+    private property <[string]> numerical-col-names;
+    private property <[string]> categorical-col-names;
+    private property <[string]> binary-col-names;
+
+    property <[ScoredRegressionEntrySlint]> scored-entries;
 
     init => {
-        numerical_col_names = ConfigurationGlobal.get-numerical-column-names();
-        binary_col_names = ConfigurationGlobal.get-binary-column-names();
-        simple_selected = ConfigurationGlobal.load-simple-selected();
-        binary_selected = ConfigurationGlobal.load-binary-selected();
+        numerical-col-names = ConfigurationGlobal.get-numerical-column-names();
+        categorical-col-names = ConfigurationGlobal.get-categorical-column-names();
+        binary-col-names = ConfigurationGlobal.get-binary-column-names();
+        scored-entries = ConfigurationGlobal.load-scored-regression-entries();
+        simple-selected = ConfigurationGlobal.load-simple-selected();
+        binary-selected = ConfigurationGlobal.load-binary-selected();
+        tabs.selection-idx = ConfigurationGlobal.load-tab-selected();
     }
 
     VerticalLayout {
@@ -40,6 +68,9 @@ export component Configuration inherits TabBase {
                 @tr("Binary Classification")
             ];
             height: 2rem;
+            changed selection-idx => {
+                ConfigurationGlobal.save-tab-selected(self.selection-idx);
+            }
         }
 
         // Simple regression
@@ -51,11 +82,138 @@ export component Configuration inherits TabBase {
             }
 
             ComboBox {
-                model: numerical_col_names;
-                current-value: simple_selected;
+                model: numerical-col-names;
+                current-value: simple-selected;
                 selected(current-value) => {
-                    simple_selected = current-value;
-                    ConfigurationGlobal.save-simple-selected(simple_selected)
+                    simple-selected = current-value;
+                    ConfigurationGlobal.save-simple-selected(simple-selected)
+                }
+            }
+        }
+
+        if tabs.selection-idx == 1: VerticalLayout {
+            spacing: 8px;
+
+            HorizontalLayout {
+                spacing: 8px;
+                new-scored-box := ComboBox {
+                    model: categorical-col-names;
+                }
+
+                Button {
+                    text: "+";
+                    clicked => {
+                        if (!new-scored-box.current-value.is-empty) {
+                            scored-entries = ConfigurationGlobal.add-scored-regression-entry(new-scored-box.current-value, scored-entries);
+                            ConfigurationGlobal.save-scored-regression-entries(scored-entries);
+                        }
+                        4
+                    }
+                }
+            }
+
+            ScrollView {
+                init => {
+                    debug(scored-entries.length)
+                }
+                vertical-stretch: 1.0;
+                mouse-drag-pan-enabled: true;
+                horizontal-scrollbar-policy: ScrollBarPolicy.always-off;
+                VerticalLayout {
+                    width: parent.width;
+                    spacing: 4px;
+                    for scored-entry in scored-entries: Rectangle {
+                        width: parent.width;
+                        background: Palette.alternate-background;
+                        border-radius: 3px;
+                        border-width: 1px;
+                        border-color: Palette.border;
+                        VerticalLayout {
+                            padding: 16px;
+                            spacing: 4px;
+                            HorizontalLayout {
+                                Text {
+                                    text: scored-entry.column-title;
+                                    overflow: elide;
+                                    height: 1.5rem;
+                                }
+
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                }
+
+                                Button {
+                                    text: "X";
+                                    clicked => {
+                                        scored-entries = ConfigurationGlobal.remove-scored-regression-entry(scored-entry.column-title, scored-entries);
+                                    }
+                                }
+                            }
+
+                            GridBox {
+                                Text {
+                                    text: @tr("Correct Answer: ");
+                                    row: 0;
+                                    col: 0;
+                                }
+
+                                ComboBox {
+                                    model: scored-entry.answers;
+                                    current-value: scored-entry.correct-answer;
+                                    height: 1.5rem;
+                                    selected(current-value) => {
+                                        scored-entry.correct-answer = current-value;
+                                        ConfigurationGlobal.save-scored-regression-entries(scored-entries);
+                                    }
+                                    row: 0;
+                                    col: 1;
+                                }
+
+                                Text {
+                                    text: @tr("Points Gained on Correct (0-5):");
+                                    row: 1;
+                                    col: 0;
+                                }
+
+                                SpinBox {
+                                    value: scored-entry.correct-points;
+                                    width: 16rem;
+                                    height: 1.5rem;
+                                    minimum: 0;
+                                    maximum: 5;
+                                    step-size: 1;
+                                    edited(value) => {
+                                        scored-entry.correct-points = value;
+                                        ConfigurationGlobal.save-scored-regression-entries(scored-entries);
+                                    }
+                                    row: 1;
+                                    col: 1;
+                                }
+
+                                Text {
+                                    text: @tr("Points Lost on Incorrect (0-5):");
+                                    height: 1.5rem;
+                                    row: 2;
+                                    col: 0;
+                                }
+
+                                SpinBox {
+                                    value: scored-entry.incorrect-points;
+                                    width: 16rem;
+                                    height: 1.5rem;
+                                    minimum: 0;
+                                    maximum: 5;
+                                    step-size: 1;
+                                    edited(value) => {
+                                        scored-entry.incorrect-points = value;
+                                        ConfigurationGlobal.save-scored-regression-entries(scored-entries);
+                                    }
+                                    row: 2;
+                                    col: 1;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -69,16 +227,16 @@ export component Configuration inherits TabBase {
             }
 
             ComboBox {
-                model: binary_col_names;
-                current-value: binary_selected;
+                model: binary-col-names;
+                current-value: binary-selected;
                 selected(current-value) => {
-                    binary_selected = current-value;
-                    ConfigurationGlobal.save-binary-selected(binary_selected)
+                    binary-selected = current-value;
+                    ConfigurationGlobal.save-binary-selected(binary-selected)
                 }
             }
         }
 
-        Rectangle {
+        if tabs.selection-idx != 1: Rectangle {
             vertical-stretch: 1;
         }
 
@@ -88,8 +246,8 @@ export component Configuration inherits TabBase {
             }
 
             Button {
-                enabled: (simple_selected != "Unset" && tabs.selection-idx == 0) || (binary_selected != "Unset" && tabs.selection-idx == 2);
-                text: "Continue";
+                enabled: (simple-selected != "Unset" && tabs.selection-idx == 0) || tabs.selection-idx == 1 || (binary-selected != "Unset" && tabs.selection-idx == 2);
+                text: @tr("Continue");
             }
         }
     }
