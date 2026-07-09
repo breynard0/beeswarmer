@@ -60,7 +60,7 @@ export component AppWindow inherits Window {
             reset-to-here() => {
                 general-reset(1);
                 ConfigurationGlobal.save-simple-selected("Unset");
-                // TODO: Fill in scored regression here
+                ConfigurationGlobal.save-scored-regression-entries([]);
                 ConfigurationGlobal.save-binary-selected("Unset");
             }
             changed data => {

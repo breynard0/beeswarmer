@@ -3,6 +3,7 @@
 pub mod appdata;
 pub mod callbacks;
 pub mod config;
+mod ml;
 pub mod savefile;
 mod table;
 

@@ -22,7 +22,7 @@ impl From<AppStateSlint> for AppState {
         Self {
             save_file_path: value.save_file_path.to_string(),
             french_selected: value.french_selected,
-            dark_selected: value.dark_selected
+            dark_selected: value.dark_selected,
         }
     }
 }

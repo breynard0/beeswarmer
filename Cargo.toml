@@ -11,11 +11,10 @@ rfd = { version = "0.17.2", default-features = false, features = [ "gtk3", "wayl
 spdlog-rs = "0.5.3"
 directories = "6.0.0"
 toml = "1.1.2"
+tempfile = "3.27.0"
 
 [build-dependencies]
 slint-build = "1.17.0"
-slint-interpreter = "1.17.0"
-spin_on = "0.1.1"
 
 [profile.release]
 codegen-units = 1

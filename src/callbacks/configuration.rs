@@ -1,10 +1,14 @@
 use crate::appdata::AppState;
+use crate::ml::ConfigurationLock;
+use crate::ml::OutputColumnData::{BinaryClassificatory, Regressive};
 use crate::savefile::{SaveFile, ScoredRegressionEntry};
 use crate::table::TableColumnType;
+use crate::table::TableColumnType::{Categorical, Numerical};
 use crate::{AppWindow, ConfigurationGlobal, ScoredRegressionEntrySlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
-use spdlog::warn;
+use spdlog::{error, warn};
 use std::sync::{Arc, Mutex};
+
 //noinspection DuplicatedCode
 pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     let global = ui.global::<ConfigurationGlobal>();
@@ -238,5 +242,109 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
             }
             ModelRc::new(VecModel::from(v))
         })
+    }
+
+    {
+        global.on_check_contains_zero_entry(|array| {
+            array
+                .iter()
+                .find(|x| x.correct_points == 0 && x.incorrect_points == 0)
+                .is_some()
+        })
+    }
+
+    {
+        let data = data.clone();
+        global.on_conf_continue(move || {
+            if let Ok(handle) = data.lock() {
+                let mut save_file = SaveFile::load_savefile(handle.save_file_path.clone());
+
+                let table = save_file.table_data.clone().unwrap();
+                let conf_settings = save_file.conf_settings.clone();
+
+                let output_data;
+                let output_name = match conf_settings.tab_selected {
+                    0 => {
+                        let col = table.columns
+                            .iter()
+                            .find(|c| c.title == conf_settings.simple_regression_column.clone().unwrap()
+                                && c.column_type == Numerical)
+                            .unwrap()
+                            .column_entries
+                            .iter()
+                            .map(|s| s.parse().unwrap())
+                            .collect::<Vec<_>>();
+                        output_data = Regressive(col);
+                        conf_settings.simple_regression_column.unwrap()
+                    }
+                    1 => {
+                        let mut score_rows = vec![];
+                        for index in 0..table.number_rows {
+                            if table.excluded_rows.contains(&index) { continue; }
+
+                            let mut score: f64 = 0.0;
+                            for question in &conf_settings.scored_regression_data {
+                                let value = &table.columns
+                                    .iter()
+                                    .find(|x| x.title == question.column_title)
+                                    .unwrap()
+                                    .column_entries[index as usize];
+                                if *value == question.correct_answer {
+                                    score += question.correct_points as f64;
+                                } else {
+                                    score -= question.incorrect_points as f64;
+                                }
+                            }
+                            score_rows.push(score);
+                        }
+                        output_data = Regressive(score_rows);
+                        "score".to_string()
+                    }
+                    2 => {
+                        let col = table.columns
+                            .iter()
+                            .find(|c| c.title == conf_settings.binary_regression_column.clone().unwrap()
+                                && c.column_type == Categorical)
+                            .unwrap()
+                            .column_entries
+                            .iter()
+                            .map(|s| s.parse().unwrap())
+                            .collect::<Vec<_>>();
+                        output_data = BinaryClassificatory(col);
+                        conf_settings.binary_regression_column.unwrap()
+                    }
+                    _ => {
+                        error!("User somehow managed to select a non-existent tab in Configuration view. Congratulations.");
+                        return;
+                    }
+                };
+
+                save_file.conf_lock = Some(ConfigurationLock {
+                    numerical_columns: table.columns
+                        .iter()
+                        .filter(|col|col.enabled && col.column_type == Numerical && col.title != output_name)
+                        .map(|col| (
+                                col.title.clone(),
+                                col.column_entries
+                                    .iter()
+                                    .map(|x| x.parse::<f64>().unwrap())
+                                    .collect()
+                            )
+                        ).collect(),
+                    categorical_columns: table.columns
+                        .iter()
+                        .filter(|col|col.enabled && col.column_type == Categorical && col.title != output_name)
+                        .map(|col| (
+                            col.title.clone(),
+                            col.column_entries.clone()
+                        )
+                        ).collect(),
+                    output_name,
+                    output_data,
+                });
+
+                save_file.save_savefile(handle.save_file_path.clone());
+            }
+        });
     }
 }

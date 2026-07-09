@@ -1,4 +1,5 @@
 use crate::ScoredRegressionEntrySlint;
+use crate::ml::ConfigurationLock;
 use crate::table::TableData;
 use slint::{Model, ModelRc, VecModel};
 use spdlog::{error, warn};
@@ -7,6 +8,7 @@ use spdlog::{error, warn};
 pub struct SaveFile {
     pub table_data: Option<TableData>,
     pub conf_settings: ConfigurationSettings,
+    pub conf_lock: Option<ConfigurationLock>,
 }
 
 impl SaveFile {
@@ -84,7 +86,7 @@ impl From<ScoredRegressionEntrySlint> for ScoredRegressionEntry {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Default)]
 pub struct ConfigurationSettings {
     pub tab_selected: u32,
     pub simple_regression_column: Option<String>,

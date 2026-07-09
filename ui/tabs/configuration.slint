@@ -32,6 +32,8 @@ export global ConfigurationGlobal {
     callback save-tab-selected(int);
     callback add-scored-regression-entry(string, [ScoredRegressionEntrySlint]) -> [ScoredRegressionEntrySlint];
     callback remove-scored-regression-entry(string, [ScoredRegressionEntrySlint]) -> [ScoredRegressionEntrySlint];
+    callback check-contains-zero-entry([ScoredRegressionEntrySlint]) -> bool;
+    callback conf-continue();
 }
 
 export component Configuration inherits TabBase {
@@ -44,6 +46,8 @@ export component Configuration inherits TabBase {
     private property <[string]> categorical-col-names;
     private property <[string]> binary-col-names;
 
+    private property <bool> contains-zero-entry;
+
     property <[ScoredRegressionEntrySlint]> scored-entries;
 
     init => {
@@ -54,6 +58,7 @@ export component Configuration inherits TabBase {
         simple-selected = ConfigurationGlobal.load-simple-selected();
         binary-selected = ConfigurationGlobal.load-binary-selected();
         tabs.selection-idx = ConfigurationGlobal.load-tab-selected();
+        contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
     }
 
     VerticalLayout {
@@ -77,7 +82,7 @@ export component Configuration inherits TabBase {
         if tabs.selection-idx == 0: VerticalLayout {
             spacing: 8px;
             Text {
-                text: @tr("Select numerical column representing the independent variable");
+                text: @tr("Select numerical column representing the dependent variable");
                 wrap: word-wrap;
             }
 
@@ -93,6 +98,9 @@ export component Configuration inherits TabBase {
 
         if tabs.selection-idx == 1: VerticalLayout {
             spacing: 8px;
+            init => {
+                contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
+            }
 
             HorizontalLayout {
                 spacing: 8px;
@@ -107,15 +115,12 @@ export component Configuration inherits TabBase {
                             scored-entries = ConfigurationGlobal.add-scored-regression-entry(new-scored-box.current-value, scored-entries);
                             ConfigurationGlobal.save-scored-regression-entries(scored-entries);
                         }
-                        4
+                        contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
                     }
                 }
             }
 
             ScrollView {
-                init => {
-                    debug(scored-entries.length)
-                }
                 vertical-stretch: 1.0;
                 mouse-drag-pan-enabled: true;
                 horizontal-scrollbar-policy: ScrollBarPolicy.always-off;
@@ -146,6 +151,7 @@ export component Configuration inherits TabBase {
                                     text: "X";
                                     clicked => {
                                         scored-entries = ConfigurationGlobal.remove-scored-regression-entry(scored-entry.column-title, scored-entries);
+                                        contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
                                     }
                                 }
                             }
@@ -185,6 +191,7 @@ export component Configuration inherits TabBase {
                                     edited(value) => {
                                         scored-entry.correct-points = value;
                                         ConfigurationGlobal.save-scored-regression-entries(scored-entries);
+                                        contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
                                     }
                                     row: 1;
                                     col: 1;
@@ -207,6 +214,7 @@ export component Configuration inherits TabBase {
                                     edited(value) => {
                                         scored-entry.incorrect-points = value;
                                         ConfigurationGlobal.save-scored-regression-entries(scored-entries);
+                                        contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
                                     }
                                     row: 2;
                                     col: 1;
@@ -222,7 +230,7 @@ export component Configuration inherits TabBase {
         if tabs.selection-idx == 2: VerticalLayout {
             spacing: 8px;
             Text {
-                text: @tr("Select categorical column that contains only two values representing the independent variable");
+                text: @tr("Select categorical column that contains only two values representing the dependent variable");
                 wrap: word-wrap;
             }
 
@@ -241,13 +249,24 @@ export component Configuration inherits TabBase {
         }
 
         HorizontalLayout {
+            if (tabs.selection-idx == 1 && contains-zero-entry): Text {
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                text: @tr("Contains an entry with both point values set to zero");
+                color: orange;
+            }
+
             Rectangle {
                 horizontal-stretch: 1;
             }
 
             Button {
-                enabled: (simple-selected != "Unset" && tabs.selection-idx == 0) || tabs.selection-idx == 1 || (binary-selected != "Unset" && tabs.selection-idx == 2);
+                enabled: (simple-selected != "Unset" && tabs.selection-idx == 0) || (tabs.selection-idx == 1 && !contains-zero-entry) || (binary-selected != "Unset" && tabs.selection-idx == 2);
                 text: @tr("Continue");
+                clicked => {
+                    ConfigurationGlobal.conf-continue();
+                    root.next();
+                }
             }
         }
     }
