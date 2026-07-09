@@ -1,0 +1,17 @@
+import { Palette } from "std-widgets.slint";
+export component Throbber {
+    in property <length> size: 128px;
+    in property <length> inner-radius: size / 2.5;
+    in property <duration> period: 1s;
+
+    private property <float> progress: (mod(animation-tick(), period) / period);
+    for idx in 8: Rectangle {
+        x: (parent.width - self.width) / 2 + inner-radius * cos(idx * (360deg / 8));
+        y: (parent.height - self.height) / 2 + inner-radius * sin(idx * (360deg / 8));
+        background: Palette.foreground.transparentize(mod(idx + progress * 8, 8) / 8);
+        width: size / 12;
+        height: (size - inner-radius) / 2;
+        transform-rotation: idx * (360deg / 8) + 90deg;
+        border-radius: self.width / 4;
+    }
+}
