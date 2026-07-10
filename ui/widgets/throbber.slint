@@ -1,6 +1,6 @@
 import { Palette } from "std-widgets.slint";
 export component Throbber {
-    in property <length> size: 128px;
+    in property <length> size: 16px;
     in property <length> inner-radius: size / 2.5;
     in property <duration> period: 1s;
 
@@ -12,6 +12,5 @@ export component Throbber {
         width: size / 12;
         height: (size - inner-radius) / 2;
         transform-rotation: idx * (360deg / 8) + 90deg;
-        border-radius: self.width / 4;
     }
 }

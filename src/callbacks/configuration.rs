@@ -322,12 +322,14 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                 save_file.conf_lock = Some(ConfigurationLock {
                     numerical_columns: table.columns
                         .iter()
-                        .filter(|col|col.enabled && col.column_type == Numerical && col.title != output_name)
+                        .filter(|col| col.enabled && col.column_type == Numerical && col.title != output_name)
                         .map(|col| (
                                 col.title.clone(),
                                 col.column_entries
                                     .iter()
-                                    .map(|x| x.parse::<f64>().unwrap())
+                                    .enumerate()
+                                    .filter(|(x, _)| !table.excluded_rows.contains(&(*x as u32)))
+                                    .map(|(_, x)| x.parse::<f64>().unwrap())
                                     .collect()
                             )
                         ).collect(),
@@ -336,7 +338,12 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                         .filter(|col|col.enabled && col.column_type == Categorical && col.title != output_name)
                         .map(|col| (
                             col.title.clone(),
-                            col.column_entries.clone()
+                            col.column_entries
+                                .iter()
+                                .enumerate()
+                                .filter(|(x, _)| !table.excluded_rows.contains(&(*x as u32)))
+                                .map(|(_, s)| s.clone())
+                                .collect()
                         )
                         ).collect(),
                     output_name,
