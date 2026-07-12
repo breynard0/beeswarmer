@@ -18,7 +18,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
     let row_margin = ROW_HEIGHT / 2.0;
     let line_thickness = 4.0;
 
-    let bin_size = line_thickness * 2.0;
+    let bin_size = 0.01;
     let dot_size = ROW_HEIGHT / 6.0;
 
     let size = Size::new(
@@ -33,6 +33,8 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         .expect("Couldn't load embedded font");
 
     piet.fill(Rect::new(0.0, 0.0, size.width, size.height), &Color::WHITE);
+
+    let mut center_line_location = 0.0;
 
     for (idx, draw_row) in rows.iter().enumerate() {
         let x = side_margin + longest_title + between_margin;
@@ -55,15 +57,13 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         );
 
         // Center lines
+        center_line_location =
+            x + scale_data.line_location * dot_span_width + (content_width - dot_span_width) / 2.0;
         piet.fill(
             Rect::new(
-                x + scale_data.line_location * dot_span_width
-                    + (content_width - dot_span_width) / 2.0
-                    - line_thickness / 2.0,
+                center_line_location - line_thickness / 2.0,
                 y,
-                x + scale_data.line_location * dot_span_width
-                    + (content_width - dot_span_width) / 2.0
-                    + line_thickness / 2.0,
+                center_line_location + line_thickness / 2.0,
                 y + ROW_HEIGHT + row_margin,
             ),
             &Color::BLACK,
@@ -90,7 +90,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         let mut dots = draw_row.dots.clone();
         dots.sort_by(|a, b| a.0.total_cmp(&b.0));
         let bins_array = dots
-            .chunk_by(|a, b| (a.0 - b.0).abs() < bin_size)
+            .chunk_by(|a, b| (a.0 - b.0).abs() < bin_size && a.1 == b.1)
             .collect::<Vec<_>>();
         for bin in bins_array {
             for (idx, (position, colour)) in bin.iter().enumerate() {
@@ -107,7 +107,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
                     Circle::new(
                         (
                             x + *position * dot_span_width + (content_width - dot_span_width) / 2.0,
-                            y + dot_y,
+                            y + dot_y + dot_size / 4.0,
                         ),
                         dot_size / 2.0,
                     ),
@@ -115,6 +115,52 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
                 );
             }
         }
+    }
+
+    // Axis
+    let axis_start_y = top_margin + (ROW_HEIGHT + row_margin) * rows.len() as f64;
+    let axis_start_x = side_margin + longest_title + between_margin;
+    piet.stroke(
+        Line::new(
+            (axis_start_x, axis_start_y),
+            (axis_start_x + content_width, axis_start_y),
+        ),
+        &Color::BLACK,
+        line_thickness,
+    );
+    let min = scale_data.min_value.floor();
+    let max = scale_data.max_value.ceil();
+    let mut subdivisions = 32.0;
+    while (content_width / subdivisions) < 2.0 * ROW_HEIGHT {
+        subdivisions /= 1.5;
+    }
+    let subdivisions = subdivisions.round() as usize;
+
+    let compute_tick_line_x = |subdivisions: usize, idx: usize| -> f64 {
+        axis_start_x + (content_width / subdivisions as f64) * idx as f64
+    };
+
+    // Find index closest to zero line
+    let mut closest_zero_idx = 0;
+    let mut closest_zero_value = f64::MAX;
+    for idx in 0..=subdivisions {
+        let difference = (center_line_location - compute_tick_line_x(subdivisions, idx)).abs();
+        if difference < closest_zero_value {
+            closest_zero_idx = idx;
+            closest_zero_value = difference;
+        }
+    }
+
+    for idx in 0..=subdivisions {
+        let x = compute_tick_line_x(subdivisions, idx) - closest_zero_value;
+        if x < axis_start_x || x > axis_start_x + content_width {
+            continue;
+        }
+        piet.stroke(
+            Line::new((x, axis_start_y), (x, axis_start_y + ROW_HEIGHT / 6.0)),
+            &Color::BLACK,
+            line_thickness,
+        );
     }
 
     piet.finish()?;

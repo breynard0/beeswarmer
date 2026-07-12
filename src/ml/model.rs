@@ -103,29 +103,31 @@ pub fn gen_model(data: ConfigurationLock) {
         let mut shap_values_raw =
             model.predict_contributions(&matrix, ContributionsMethod::Shapley, false);
 
-        let shap_values_second_raw = shap_values_raw
+        let shap_values_no_bias = shap_values_raw
             .iter()
             .enumerate()
             .filter(|(idx, val)| (idx + 1) % (shap_values_raw.len() / y.len()) != 0)
             .map(|(idx, val)| *val)
             .collect::<Vec<_>>();
 
-        let mut shap_values = vec![];
+        let mut shap_values_transposed = vec![];
         let mut iteration = 0;
-        while iteration < 24 {
+        while iteration < (shap_values_no_bias.len() / y.len()) {
             let mut bounce = 0;
-            while bounce < 20 {
-                shap_values.push(
-                    shap_values_second_raw
-                        [iteration + (shap_values_second_raw.len() / y.len()) * bounce],
+            while bounce < y.len() {
+                shap_values_transposed.push(
+                    shap_values_no_bias[iteration + (shap_values_no_bias.len() / y.len()) * bounce],
                 );
                 bounce += 1;
             }
             iteration += 1;
         }
 
-        let contribution_matrix =
-            Matrix::new(shap_values.as_slice(), y.len(), shap_values.len() / y.len());
+        let contribution_matrix = Matrix::new(
+            shap_values_transposed.as_slice(),
+            y.len(),
+            shap_values_transposed.len() / y.len(),
+        );
         let a = contribution_matrix.get_col(1);
 
         info!("Shapley values computed");
