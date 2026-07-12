@@ -1,5 +1,7 @@
 use spdlog::info;
 
+pub mod beeswarm_draw;
+pub mod beeswarm_prep;
 pub mod model;
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]

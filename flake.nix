@@ -69,6 +69,7 @@
               glib
               gdk-pixbuf
               atk
+              freetype
             ];
         in
         {
