@@ -1,6 +1,8 @@
 use crate::ml::beeswarm_prep::{DrawRow, JETBRAINS_MONO, ScaleData};
 use piet::kurbo::{Circle, Line, Rect, Size};
-use piet::{Color, Error, RenderContext, StrokeStyle, Text, TextLayout, TextLayoutBuilder};
+use piet::{
+    Color, Error, RenderContext, StrokeStyle, Text, TextLayout, TextLayoutBuilder, UnitPoint,
+};
 
 pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8>, Error> {
     const ROW_HEIGHT: f64 = 80.0;
@@ -17,13 +19,19 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
     let top_margin = ROW_HEIGHT;
     let row_margin = ROW_HEIGHT / 2.0;
     let line_thickness = 4.0;
+    let colour_axis_margin = ROW_HEIGHT / 2.0;
+    let colour_axis_height = ROW_HEIGHT;
 
     let bin_size = 0.01;
     let dot_size = ROW_HEIGHT / 6.0;
 
     let size = Size::new(
         2.0 * side_margin + between_margin + content_width + axis_label_thickness + longest_title,
-        (ROW_HEIGHT + row_margin) * rows.len() as f64 + axis_label_thickness + top_margin,
+        (ROW_HEIGHT + row_margin) * rows.len() as f64
+            + axis_label_thickness
+            + top_margin
+            + colour_axis_margin
+            + colour_axis_height,
     );
 
     let mut piet = piet_svg::RenderContext::new(size);
@@ -117,51 +125,49 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         }
     }
 
-    // Axis
-    let axis_start_y = top_margin + (ROW_HEIGHT + row_margin) * rows.len() as f64;
-    let axis_start_x = side_margin + longest_title + between_margin;
-    piet.stroke(
-        Line::new(
-            (axis_start_x, axis_start_y),
-            (axis_start_x + content_width, axis_start_y),
-        ),
-        &Color::BLACK,
-        line_thickness,
+    // Color
+    let colour_axis_start_y =
+        top_margin + (ROW_HEIGHT + row_margin) * rows.len() as f64 + colour_axis_margin;
+    let colour_axis_start_x = side_margin + longest_title + between_margin;
+    let bounds = Rect::new(
+        colour_axis_start_x,
+        colour_axis_start_y,
+        colour_axis_start_x + content_width,
+        colour_axis_start_y + colour_axis_height / 2.0,
     );
-    let min = scale_data.min_value.floor();
-    let max = scale_data.max_value.ceil();
-    let mut subdivisions = 32.0;
-    while (content_width / subdivisions) < 2.0 * ROW_HEIGHT {
-        subdivisions /= 1.5;
-    }
-    let subdivisions = subdivisions.round() as usize;
-
-    let compute_tick_line_x = |subdivisions: usize, idx: usize| -> f64 {
-        axis_start_x + (content_width / subdivisions as f64) * idx as f64
-    };
-
-    // Find index closest to zero line
-    let mut closest_zero_idx = 0;
-    let mut closest_zero_value = f64::MAX;
-    for idx in 0..=subdivisions {
-        let difference = (center_line_location - compute_tick_line_x(subdivisions, idx)).abs();
-        if difference < closest_zero_value {
-            closest_zero_idx = idx;
-            closest_zero_value = difference;
-        }
-    }
-
-    for idx in 0..=subdivisions {
-        let x = compute_tick_line_x(subdivisions, idx) - closest_zero_value;
-        if x < axis_start_x || x > axis_start_x + content_width {
-            continue;
-        }
-        piet.stroke(
-            Line::new((x, axis_start_y), (x, axis_start_y + ROW_HEIGHT / 6.0)),
-            &Color::BLACK,
-            line_thickness,
-        );
-    }
+    piet.fill(
+        bounds,
+        &piet::LinearGradient::new(UnitPoint::LEFT, UnitPoint::RIGHT, (Color::BLUE, Color::RED)),
+    );
+    piet.stroke(bounds, &Color::BLACK, line_thickness);
+    let text = piet.text();
+    let layout = text
+        .new_text_layout("Low")
+        .font(jetbrains_mono.clone(), colour_axis_height / 2.0 - 2.0)
+        .text_color(Color::BLACK)
+        .build()
+        .unwrap();
+    piet.draw_text(
+        &layout,
+        (
+            colour_axis_start_x,
+            colour_axis_start_y + colour_axis_height / 2.0 + 2.0,
+        ),
+    );
+    let text = piet.text();
+    let layout = text
+        .new_text_layout("High")
+        .font(jetbrains_mono.clone(), colour_axis_height / 2.0 - 2.0)
+        .text_color(Color::BLACK)
+        .build()
+        .unwrap();
+    piet.draw_text(
+        &layout,
+        (
+            colour_axis_start_x + content_width - layout.image_bounds().width(),
+            colour_axis_start_y + colour_axis_height / 2.0 + 2.0,
+        ),
+    );
 
     piet.finish()?;
     let mut out_buffer = vec![];
