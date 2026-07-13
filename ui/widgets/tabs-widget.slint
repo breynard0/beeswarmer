@@ -48,7 +48,7 @@ export component TabsWidget {
             horizontal-alignment: center;
             vertical-alignment: center;
             text: tab-text;
-            color: index <= highest-achieved ? Palette.foreground : Palette.foreground.darker(0.5);
+            color: selected-index == index ? whitesmoke : index <= highest-achieved ? Palette.foreground : Palette.foreground.transparentize(0.5);
         }
 
         touch := TouchArea {

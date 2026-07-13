@@ -17,23 +17,22 @@ import {
 } from "../tabledata.slint";
 import { AppStateSlint, AppStateCallbacks } from "../appstate.slint";
 import { TinyTickbox } from "../widgets/tiny-tickbox.slint";
-import { MultilineTooltip } from "../widgets/multiline-tooltip.slint";
 import { GridTextbox } from "../widgets/grid-textbox.slint";
 
 export struct CheckResultSlint { ok: bool, x: int, y: int}
-
 export global CSVGlobal {
     out property <length> cell-width: 140px;
     out property <length> cell-height: 20px;
     out property <length> checkbox-size: cell-height * 0.7;
-    in-out property <TableDataSlint> data-table: TestTableData.data;
+    in-out property <TableDataSlint> data-table;
     callback get-mutated-excluded-rows([int], bool, int) -> [int];
     callback import-csv() -> TableDataSlint;
     pure callback table-contains([int], int) -> bool;
     pure callback check-all-columns-set(TableDataSlint) -> CheckResultSlint;
     pure callback check-all-cells-have-value(TableDataSlint) -> CheckResultSlint;
     pure callback check-numerical-check(TableDataSlint) -> CheckResultSlint;
-    callback save-table(TableDataSlint, string);
+    pure callback check-table-empty(TableDataSlint) -> CheckResultSlint;
+    pure callback save-table(TableDataSlint, string);
 }
 
 export component CSVEditor inherits TabBase {
@@ -65,6 +64,7 @@ export component CSVEditor inherits TabBase {
         let all-columns-set = CSVGlobal.check-all-columns-set(CSVGlobal.data-table);
         let all-cells-have-value = CSVGlobal.check-all-cells-have-value(CSVGlobal.data-table);
         let numerical-check = CSVGlobal.check-numerical-check(CSVGlobal.data-table);
+        let empty-check = CSVGlobal.check-table-empty(CSVGlobal.data-table);
         if (!all-columns-set.ok) {
             error_x = all-columns-set.x;
             error_y = all-columns-set.y;
@@ -74,22 +74,28 @@ export component CSVEditor inherits TabBase {
         } else if (!numerical-check.ok) {
             error_x = numerical-check.x;
             error_y = numerical-check.y;
+        } else if (!empty-check.ok) {
+            error_x = -1;
+            error_y = -1;
         } else {
             error_x = -1;
             error_y = -1;
         }
-        all-columns-set.ok && all-cells-have-value.ok && numerical-check.ok;
+        all-columns-set.ok && all-cells-have-value.ok && numerical-check.ok && empty-check.ok;
     }
 
     pure function get-error-text() -> string {
         if (!CSVGlobal.check-all-columns-set(CSVGlobal.data-table).ok) {
-            return @tr("Cannot continue, not all enabled columns have their types set");
+            return @tr("Cannot continue, not all enabled columns have their types or names set");
         }
         if (!CSVGlobal.check-all-cells-have-value(CSVGlobal.data-table).ok) {
             return @tr("Cannot continue, at least one enabled cell is missing a value");
         }
         if (!CSVGlobal.check-numerical-check(CSVGlobal.data-table).ok) {
             return @tr("Cannot continue, enabled column marked numerical contains categorical data");
+        }
+        if (!CSVGlobal.check-table-empty(CSVGlobal.data-table).ok) {
+            return @tr("Cannot continue, table is empty");
         }
         return "";
     }
@@ -133,20 +139,20 @@ export component CSVEditor inherits TabBase {
                     h-layout := HorizontalLayout {
                         x: parent.width * 0.05;
                         width: parent.width * 0.9;
-                        Text {
+                        GridTextbox {
                             text: column.title;
-                            color: CSVGlobal.data-table.columns[column-index].enabled ? Palette.foreground : Palette.foreground.transparentize(0.5);
-                            horizontal-alignment: left;
-                            vertical-alignment: center;
+                            text-colour: CSVGlobal.data-table.columns[column-index].enabled ? Palette.foreground : Palette.foreground.transparentize(0.5);
                             width: CSVGlobal.cell-width * 0.8;
                             height: CSVGlobal.cell-height;
-                            overflow: TextOverflow.elide;
-                            MultilineTooltip {
-                                width: parent.width;
-                                height: parent.height;
-                                popup-width: h-layout.width;
-                                text: column.title;
-                                hover-duration: 700ms;
+                            read-only: !CSVGlobal.data-table.columns[column-index].enabled;
+                            on-edit(new-text) => {
+                                column.title = new-text;
+                                CSVGlobal.data-table.columns[column-index].title = new-text;
+                                self.text = new-text;
+                                start-save-timer();
+                                error-text.text = get-error-text();
+                                check-continue-button-enabled = set-check-continue-button-enabled();
+                                reset-to-here()
                             }
                         }
 
@@ -178,34 +184,36 @@ export component CSVEditor inherits TabBase {
                         return @tr("Unset");
                     }
 
-                    Rectangle {
-                        border-radius: 3px;
-                        border-width: 1px;
-                        border-color: error_y == -1 && error_x == column-index ? orangered : transparent;
+                    ComboBox {
+                        enabled: CSVGlobal.data-table.columns[column-index].enabled;
                         x: parent.width * 0.05;
-                        height: CSVGlobal.cell-height;
                         width: parent.width * 0.9;
-                        ComboBox {
-                            enabled: CSVGlobal.data-table.columns[column-index].enabled;
-                            width: parent.width;
-                            height: parent.height;
-                            model: [@tr("Unset"), @tr("Numerical"), @tr("Categorical")];
-                            current-value: column-type-to-string(CSVGlobal.data-table.columns[column-index].column_type);
-                            selected(current-value) => {
-                                if (current-value == @tr("Unset")) {
-                                    CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Unset;
-                                } else if (current-value == @tr("Numerical")) {
-                                    CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Numerical;
-                                } else if (current-value == @tr("Categorical")) {
-                                    CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Categorical;
-                                }
-                                start-save-timer();
-                                error-text.text = get-error-text();
-                                check-continue-button-enabled = set-check-continue-button-enabled();
-                                reset-to-here()
+                        height: CSVGlobal.cell-height;
+                        model: [@tr("Unset"), @tr("Numerical"), @tr("Categorical")];
+                        current-value: column-type-to-string(CSVGlobal.data-table.columns[column-index].column_type);
+                        selected(current-value) => {
+                            if (current-value == @tr("Unset")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Unset;
+                            } else if (current-value == @tr("Numerical")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Numerical;
+                            } else if (current-value == @tr("Categorical")) {
+                                CSVGlobal.data-table.columns[column-index].column_type = TableColumnTypeSlint.Categorical;
                             }
+                            start-save-timer();
+                            error-text.text = get-error-text();
+                            check-continue-button-enabled = set-check-continue-button-enabled();
+                            reset-to-here()
                         }
                     }
+                }
+
+                Rectangle {
+                    border-radius: 3px;
+                    border-width: 1px;
+                    border-color: error_y == -1 && error_x == column-index ? orangered : transparent;
+                    x: parent.width * 0.05;
+                    height: 2 * CSVGlobal.cell-height;
+                    width: parent.width * 0.9;
                 }
 
                 for column-entry[row_index] in column.column-entries: Rectangle {

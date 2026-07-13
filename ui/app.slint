@@ -1,6 +1,6 @@
 import { Button, VerticalBox, TabWidget, Palette } from "std-widgets.slint";
 import { TabsWidget } from "widgets/tabs-widget.slint";
-import { CSVEditor } from "tabs/csv_editor.slint";
+import { CSVEditor, CSVGlobal } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
 import { AppStateSlint } from "appstate.slint";
 import { Configuration, ConfigurationGlobal } from "tabs/configuration.slint";
@@ -17,9 +17,12 @@ export component AppWindow inherits Window {
     title: "Beeswarmer";
 
     callback reset-data(idx: int);
-    callback on-quit();
 
     in-out property <AppStateSlint> app-data-slint;
+
+    public function call-csv-save() {
+        CSVGlobal.save-table(CSVGlobal.data-table, app-data-slint.save-file-path);
+    }
 
     public function sync-theme() {
         Palette.color-scheme = app-data-slint.dark-selected ? ColorScheme.dark : ColorScheme.light;

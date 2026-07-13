@@ -1,10 +1,7 @@
-use crate::ml::model::categorical_to_one_hot;
 use crate::ml::ConfigurationLock;
+use crate::ml::model::categorical_to_one_hot;
 use piet::kurbo::Size;
-use piet::{
-    Color, Error, RenderContext, Text, TextLayout,
-    TextLayoutBuilder,
-};
+use piet::{Color, Error, RenderContext, Text, TextLayout, TextLayoutBuilder};
 
 pub const JETBRAINS_MONO: &[u8] = include_bytes!("../../resources/JetBrainsMono-Regular.ttf");
 

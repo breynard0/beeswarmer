@@ -32,6 +32,7 @@ export component NSelector inherits Rectangle {
             horizontal-alignment: center;
             vertical-alignment: center;
             overflow: TextOverflow.clip;
+            color: selection-idx == my-idx ? whitesmoke : Palette.foreground;
         }
 
         focus := FocusScope {

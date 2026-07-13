@@ -23,13 +23,13 @@ pub const SLASH: char = '/';
 slint::include_modules!();
 
 fn main() -> Result<(), Box<dyn Error>> {
-    gen_model(
-        savefile::SaveFile::load_savefile("./tests.bswproj".to_string())
-            .conf_lock
-            .unwrap(),
-    );
-    loop {}
-    // run_app()?
+    // gen_model(
+    //     savefile::SaveFile::load_savefile("./tests.bswproj".to_string())
+    //         .conf_lock
+    //         .unwrap(),
+    // );
+    // loop {}
+    run_app()?
 }
 
 fn run_app() -> Result<Result<(), Box<dyn Error>>, Box<dyn Error>> {
@@ -54,6 +54,8 @@ fn run_app() -> Result<Result<(), Box<dyn Error>>, Box<dyn Error>> {
     info!("Starting Beeswarmer");
     ui.invoke_sync_theme();
     ui.run()?;
+    info!("Closing Beeswarmer");
+    ui.invoke_call_csv_save();
 
     Ok(Ok(()))
 }

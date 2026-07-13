@@ -128,7 +128,6 @@ pub fn gen_model(data: ConfigurationLock) {
             y.len(),
             shap_values_transposed.len() / y.len(),
         );
-        let a = contribution_matrix.get_col(1);
 
         info!("Shapley values computed");
         info!("Starting beeswarm plot generation");

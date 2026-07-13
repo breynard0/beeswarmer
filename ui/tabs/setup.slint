@@ -80,6 +80,7 @@ export component ProjectSetup inherits TabBase {
                         height: 20px;
                         Text {
                             text: entry;
+                            color: data.save-file-path == entry ? whitesmoke : Palette.foreground;
                         }
 
                         FocusScope {

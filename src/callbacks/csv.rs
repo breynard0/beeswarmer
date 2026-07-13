@@ -151,17 +151,33 @@ pub fn csv_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 .iter()
                 .map(|x| TableColumn::from(x))
                 .collect::<Vec<_>>();
-            let out = columns
+            let out_type = columns
                 .iter()
                 .find(|col| col.column_type == TableColumnType::Unset && col.enabled)
                 .is_none();
-            if out == false {
+            if out_type == false {
                 x = columns
                     .iter()
                     .position(|col| col.column_type == TableColumnType::Unset && col.enabled)
                     .unwrap() as i32;
             }
-            CheckResultSlint { ok: out, x, y: -1 }
+            let out_name = table_data_slint
+                .columns
+                .iter()
+                .find(|x| x.title.is_empty() && x.enabled)
+                .is_none();
+            if out_name == false {
+                x = table_data_slint
+                    .columns
+                    .iter()
+                    .position(|x| x.title.is_empty() && x.enabled)
+                    .unwrap() as i32;
+            }
+            CheckResultSlint {
+                ok: out_type && out_name,
+                x,
+                y: -1,
+            }
         })
     }
 
@@ -191,6 +207,14 @@ pub fn csv_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 x,
                 y,
             }
+        })
+    }
+
+    {
+        global.on_check_table_empty(|table_data_slint| CheckResultSlint {
+            ok: table_data_slint.number_rows != 0 && table_data_slint.columns.iter().len() != 0,
+            x: -1,
+            y: -1,
         })
     }
 }
