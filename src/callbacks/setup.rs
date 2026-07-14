@@ -14,53 +14,57 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
         let ui_handle = ui.as_weak();
         let data = data.clone();
         global.on_file_browser(move |create_new| {
-            match data.lock() {
-                Ok(mut data) => {
-                    if create_new {
-                        info!("Opening file save dialog");
-                        let result = rfd::FileDialog::new()
-                            .add_filter("Beeswarmer Project", &["bswproj"])
-                            .save_file();
-                        if result.is_some() {
-                            data.save_file_path = result.unwrap().to_str().unwrap().to_string();
+            let data = data.clone();
+            let ui_handle = ui_handle.clone();
+            let _ = slint::spawn_local(async move {
+                match data.lock() {
+                    Ok(mut data) => {
+                        if create_new {
+                            info!("Opening file save dialog");
+                            let result = rfd::AsyncFileDialog::new()
+                                .add_filter("Beeswarmer Project", &["bswproj"])
+                                .save_file().await;
+                            if result.is_some() {
+                                data.save_file_path = result.unwrap().path().to_str().unwrap().to_string();
 
-                            // Append .bswproj if does not exist
-                            let extension = data
-                                .save_file_path
-                                .chars()
-                                .rev()
-                                .take(".bswproj".len())
-                                .collect::<String>();
+                                // Append .bswproj if does not exist
+                                let extension = data
+                                    .save_file_path
+                                    .chars()
+                                    .rev()
+                                    .take(".bswproj".len())
+                                    .collect::<String>();
 
-                            if extension.chars().rev().collect::<String>() != ".bswproj" {
-                                info!(
+                                if extension.chars().rev().collect::<String>() != ".bswproj" {
+                                    info!(
                                     "Provided file name (\'{}\') did not include extension, adding now",
                                     data.save_file_path
                                 );
-                                data.save_file_path.push_str(".bswproj");
+                                    data.save_file_path.push_str(".bswproj");
+                                }
+
+                                info!("New save file set: \'{}\'", data.save_file_path);
+
+                                match std::fs::write(&data.save_file_path, toml::to_string(&SaveFile::default()).unwrap()) {
+                                    Ok(_) => info!("New save file created"),
+                                    Err(e) => error!("Failed to write save file: {}", e)
+                                };
                             }
-
-                            info!("New save file set: \'{}\'", data.save_file_path);
-
-                            match std::fs::write(&data.save_file_path, vec![]) {
-                                Ok(_) => info!("New save file created"),
-                                Err(e) => error!("Failed to write save file: {}", e)
-                            };
+                        } else {
+                            info!("Opening file picker dialog");
+                            let result = rfd::FileDialog::new()
+                                .add_filter("Beeswarmer Project", &["bswproj"])
+                                .pick_file();
+                            if result.is_some() {
+                                data.save_file_path = result.unwrap().to_str().unwrap().to_string();
+                                info!("New save file set: \'{}\'", data.save_file_path);
+                            }
                         }
-                    } else {
-                        info!("Opening file picker dialog");
-                        let result = rfd::FileDialog::new()
-                            .add_filter("Beeswarmer Project", &["bswproj"])
-                            .pick_file();
-                        if result.is_some() {
-                            data.save_file_path = result.unwrap().to_str().unwrap().to_string();
-                            info!("New save file set: \'{}\'", data.save_file_path);
-                        }
+                        sync_appdata(&ui_handle, &data);
                     }
-                    sync_appdata(&ui_handle, &data);
-                }
-                Err(_) => {}
-            };
+                    Err(_) => {}
+                };
+            });
         });
     }
 

@@ -34,7 +34,15 @@ impl SaveFile {
         let maybe_parse = toml::from_str(&raw_str);
         maybe_parse.unwrap_or_else(|e| {
             warn!("Failed to parse save file, regenerating: {e}");
-            let _ = std::fs::write(format!("{}_old.bswprj", path), raw_str);
+            let path_no_extension = path.trim_end_matches(".bswproj");
+            let mut index = 0;
+            let mut regen_path = format!("{}_old{}.bswproj", path_no_extension, index);
+            let max = 100;
+            while std::fs::exists(&regen_path).unwrap_or(false) && index < max {
+                index += 1;
+                regen_path = format!("{}_old{}.bswproj", path_no_extension, index);
+            }
+            let _ = std::fs::write(regen_path, raw_str);
             let new_savefile = Self::default();
             new_savefile.save_savefile(path);
             return new_savefile;
