@@ -4,11 +4,13 @@ import { CSVEditor, CSVGlobal } from "tabs/csv_editor.slint";
 import { ProjectSetup } from "tabs/setup.slint";
 import { AppStateSlint } from "appstate.slint";
 import { Configuration, ConfigurationGlobal } from "tabs/configuration.slint";
+import { Results, ResultsGlobal } from "tabs/results.slint";
 
 export { AppStateCallbacks } from "appstate.slint";
 export { SetupCallbacks } from "tabs/setup.slint";
 export { CSVGlobal } from "tabs/csv_editor.slint";
 export { ConfigurationGlobal, ScoredRegressionEntrySlint } from "tabs/configuration.slint";
+export { ResultsGlobal } from "tabs/results.slint";
 
 export component AppWindow inherits Window {
     min-width: 600px;
@@ -56,28 +58,30 @@ export component AppWindow inherits Window {
         if tab.selected-index == 1: CSVEditor {
             font-size: root.default-font-size;
             window-width: root.width;
-            data: app-data-slint;
+            data <=> app-data-slint;
             reset-to-here() => {
                 general-reset(1);
                 ConfigurationGlobal.save-simple-selected("Unset");
                 ConfigurationGlobal.save-scored-regression-entries([]);
                 ConfigurationGlobal.save-binary-selected("Unset");
             }
-            changed data => {
-                app-data-slint = self.data;
-            }
             next => general-next(1);
         }
 
-        if tab.selected-index == 2: conf := Configuration {
+        if tab.selected-index == 2: Configuration {
+            font-size: root.default-font-size;
+            window-width: root.width;
+            data <=> app-data-slint;
+            reset-to-here() => {
+                general-reset(0);
+            }
+            next => general-next(2);
+        }
+
+        if tab.selected-index == 3: Results {
             font-size: root.default-font-size;
             window-width: root.width;
             data: app-data-slint;
-            changed data => {
-                app-data-slint = self.data;
-            }
-
-            next => general-next(2);
         }
     }
 }

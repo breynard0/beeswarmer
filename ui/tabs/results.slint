@@ -1,0 +1,250 @@
+import { TabBase } from "tab_base.slint";
+import { AppStateSlint } from "../appstate.slint";
+import {
+    Palette,
+    GroupBox,
+    ComboBox,
+    ScrollView,
+    LineEdit,
+    Button,
+} from "std-widgets.slint";
+import { TinyTickbox } from "../widgets/tiny-tickbox.slint";
+import { GridTextbox } from "../widgets/grid-textbox.slint";
+
+export struct BeeswarmTheme {
+    name: string,
+    foreground: string,
+    background: string,
+    high: string,
+    low: string,
+}
+
+export global ResultsGlobal {
+    out property <BeeswarmTheme> light: {
+        name: "Light",
+        foreground: "#030303",
+        background: "#ffffff",
+        high: "#ff0051",
+        low: "#008bfb"
+    };
+
+    out property <BeeswarmTheme> dark: {
+        name: "Dark",
+        foreground: "#fefefe",
+        background: "#1a1a1c",
+        high: "#ec710a",
+        low: "#0a6aec"
+    };
+
+    out property <BeeswarmTheme> nord: {
+        name: "Nord",
+        foreground: "#eceff4",
+        background: "#2e3440",
+        high: "#bf616a",
+        low: "#5e81ac"
+    };
+
+    out property <BeeswarmTheme> gruvbox-dark: {
+        name: "Gruvbox Dark",
+        foreground: "#f9f5d7",
+        background: "#32302f",
+        high: "#fb4934",
+        low: "#83a598",
+    };
+
+    out property <BeeswarmTheme> gruvbox-light: {
+        name: "Gruvbox Light",
+        foreground: "#1d2021",
+        background: "f2e5bc",
+        high: "#fb4934",
+        low: "#83a598",
+    };
+
+    callback gen-beeswarm-img(theme: BeeswarmTheme) -> image;
+}
+
+export component Results inherits TabBase {
+    in property <AppStateSlint> data;
+
+    private property <BeeswarmTheme> current-theme: ResultsGlobal.light;
+    private property <bool> custom: false;
+
+    private property <image> preview;
+
+    // Sidebar
+    sidebar := Rectangle {
+        width: root.width / 4.0;
+        x: 0;
+        VerticalLayout {
+            padding: 10px;
+            spacing: 4px;
+            Text {
+                text: "Plot Colours:";
+            }
+
+            ComboBox {
+                current-value: current-theme.name;
+                model: ["Light", "Dark", "Nord", "Gruvbox Dark", "Gruvbox Light"];
+                enabled: !custom;
+                selected(current-value) => {
+                    if (current-value == "Light") {
+                        current-theme = ResultsGlobal.light;
+                    } else if (current-value == "Dark") {
+                        current-theme = ResultsGlobal.dark;
+                    } else if (current-value == "Nord") {
+                        current-theme = ResultsGlobal.nord;
+                    } else if (current-value == "Gruvbox Dark") {
+                        current-theme = ResultsGlobal.gruvbox-dark;
+                    } else if (current-value == "Gruvbox Light") {
+                        current-theme = ResultsGlobal.gruvbox-light;
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                t := Text {
+                    text: "Custom Colours:";
+                }
+
+                VerticalLayout {
+                    Rectangle {
+                        vertical-stretch: 1;
+                    }
+
+                    TinyTickbox {
+                        size: 12px;
+                        checked: custom;
+                        on-toggled(val) => {
+                            custom = val;
+                        }
+                    }
+
+                    Rectangle {
+                        vertical-stretch: 1;
+                    }
+                }
+            }
+
+            if custom: VerticalLayout {
+                spacing: 2px;
+                HorizontalLayout {
+                    Text {
+                        text: "FG: ";
+                    }
+
+                    GridTextbox {
+                        text: current-theme.foreground;
+                        text-colour: Palette.foreground;
+                        border-width: 1px;
+                        border-color: Palette.border;
+                        background: Palette.alternate-background;
+                        border-radius: 2px;
+                        width: parent.width / 2;
+                        on-edit(text) => {
+                            current-theme.foreground = text;
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    Text {
+                        text: "BG: ";
+                    }
+
+                    GridTextbox {
+                        text: current-theme.background;
+                        text-colour: Palette.foreground;
+                        border-width: 1px;
+                        border-color: Palette.border;
+                        background: Palette.alternate-background;
+                        border-radius: 2px;
+                        width: parent.width / 2;
+                        on-edit(text) => {
+                            current-theme.background = text;
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    Text {
+                        text: "High: ";
+                    }
+
+                    GridTextbox {
+                        text: current-theme.high;
+                        text-colour: Palette.foreground;
+                        border-width: 1px;
+                        border-color: Palette.border;
+                        background: Palette.alternate-background;
+                        border-radius: 2px;
+                        width: parent.width / 2;
+                        on-edit(text) => {
+                            current-theme.high = text;
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    Text {
+                        text: "Low: ";
+                    }
+
+                    GridTextbox {
+                        text: current-theme.low;
+                        text-colour: Palette.foreground;
+                        border-width: 1px;
+                        border-color: Palette.border;
+                        background: Palette.alternate-background;
+                        border-radius: 2px;
+                        width: parent.width / 2;
+                        on-edit(text) => {
+                            current-theme.low = text;
+                        }
+                    }
+                }
+            }
+
+            gen-button := Button {
+                text: "Generate";
+                clicked => {
+                    preview = ResultsGlobal.gen-beeswarm-img(current-theme);
+                }
+            }
+
+            Rectangle {
+                height: 16px;
+            }
+
+            Button {
+                text: "Save PNG";
+                enabled: false;
+            }
+
+            Button {
+                text: "Save SVG";
+                enabled: false;
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+    }
+
+    // Border
+    Rectangle {
+        width: 1px;
+        x: sidebar.width;
+        background: Palette.border;
+    }
+
+    Rectangle {
+        horizontal-stretch: 1;
+        x: sidebar.width;
+        width: parent.width - sidebar.width;
+        background: Palette.control-background;
+        Image {
+            source: preview;
+        }
+    }
+}

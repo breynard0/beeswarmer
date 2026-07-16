@@ -39,6 +39,8 @@ export global ConfigurationGlobal {
 export component Configuration inherits TabBase {
     in-out property <AppStateSlint> data;
 
+    callback reset-to-here();
+
     private property <string> simple-selected: "Unset";
     private property <string> binary-selected: "Unset";
 
@@ -74,6 +76,7 @@ export component Configuration inherits TabBase {
             ];
             height: 2rem;
             changed selection-idx => {
+                reset-to-here();
                 ConfigurationGlobal.save-tab-selected(self.selection-idx);
             }
         }
@@ -90,6 +93,7 @@ export component Configuration inherits TabBase {
                 model: numerical-col-names;
                 current-value: simple-selected;
                 selected(current-value) => {
+                    reset-to-here();
                     simple-selected = current-value;
                     ConfigurationGlobal.save-simple-selected(simple-selected)
                 }
@@ -111,6 +115,7 @@ export component Configuration inherits TabBase {
                 Button {
                     text: "+";
                     clicked => {
+                        reset-to-here();
                         if (!new-scored-box.current-value.is-empty) {
                             scored-entries = ConfigurationGlobal.add-scored-regression-entry(new-scored-box.current-value, scored-entries);
                             ConfigurationGlobal.save-scored-regression-entries(scored-entries);
@@ -150,6 +155,7 @@ export component Configuration inherits TabBase {
                                 Button {
                                     text: "X";
                                     clicked => {
+                                        reset-to-here();
                                         scored-entries = ConfigurationGlobal.remove-scored-regression-entry(scored-entry.column-title, scored-entries);
                                         contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
                                     }
@@ -168,6 +174,7 @@ export component Configuration inherits TabBase {
                                     current-value: scored-entry.correct-answer;
                                     height: 1.5rem;
                                     selected(current-value) => {
+                                        reset-to-here();
                                         scored-entry.correct-answer = current-value;
                                         ConfigurationGlobal.save-scored-regression-entries(scored-entries);
                                     }
@@ -189,6 +196,7 @@ export component Configuration inherits TabBase {
                                     maximum: 5;
                                     step-size: 1;
                                     edited(value) => {
+                                        reset-to-here();
                                         scored-entry.correct-points = value;
                                         ConfigurationGlobal.save-scored-regression-entries(scored-entries);
                                         contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
@@ -212,6 +220,7 @@ export component Configuration inherits TabBase {
                                     maximum: 5;
                                     step-size: 1;
                                     edited(value) => {
+                                        reset-to-here();
                                         scored-entry.incorrect-points = value;
                                         ConfigurationGlobal.save-scored-regression-entries(scored-entries);
                                         contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
@@ -238,6 +247,7 @@ export component Configuration inherits TabBase {
                 model: binary-col-names;
                 current-value: binary-selected;
                 selected(current-value) => {
+                    reset-to-here();
                     binary-selected = current-value;
                     ConfigurationGlobal.save-binary-selected(binary-selected)
                 }

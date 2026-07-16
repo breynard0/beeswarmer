@@ -100,13 +100,13 @@ pub fn gen_model(data: ConfigurationLock) {
         }
         info!("Training complete");
         info!("Starting Shapley value generation");
-        let mut shap_values_raw =
+        let shap_values_raw =
             model.predict_contributions(&matrix, ContributionsMethod::Shapley, false);
 
         let shap_values_no_bias = shap_values_raw
             .iter()
             .enumerate()
-            .filter(|(idx, val)| (idx + 1) % (shap_values_raw.len() / y.len()) != 0)
+            .filter(|(idx, _)| (idx + 1) % (shap_values_raw.len() / y.len()) != 0)
             .map(|(idx, val)| *val)
             .collect::<Vec<_>>();
 

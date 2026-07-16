@@ -42,7 +42,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
 
     piet.fill(Rect::new(0.0, 0.0, size.width, size.height), &Color::WHITE);
 
-    let mut center_line_location = 0.0;
+    let mut center_line_location;
 
     for (idx, draw_row) in rows.iter().enumerate() {
         let x = side_margin + longest_title + between_margin;
@@ -139,7 +139,6 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         bounds,
         &piet::LinearGradient::new(UnitPoint::LEFT, UnitPoint::RIGHT, (Color::BLUE, Color::RED)),
     );
-    piet.stroke(bounds, &Color::BLACK, line_thickness);
     let text = piet.text();
     let layout = text
         .new_text_layout("Low")
