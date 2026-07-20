@@ -63,7 +63,9 @@ export global ResultsGlobal {
 
     callback gen-beeswarm-img(theme: BeeswarmTheme);
     callback check-hex-correct(hex: string) -> bool;
+    callback save-image(format: string);
     in property <image> preview: @image-url("");
+    in property <bool> preview-set: false;
     in property <bool> throbber-shown: false;
 }
 
@@ -244,12 +246,20 @@ export component Results inherits TabBase {
 
             Button {
                 text: "Save PNG";
-                enabled: ResultsGlobal.preview != @image-url("");
+                enabled: ResultsGlobal.preview-set && !ResultsGlobal.throbber-shown;
+                clicked => {
+                    ResultsGlobal.throbber-shown = true;
+                    ResultsGlobal.save-image("png");
+                }
             }
 
             Button {
                 text: "Save SVG";
-                enabled: ResultsGlobal.preview != @image-url("");
+                enabled: ResultsGlobal.preview-set && !ResultsGlobal.throbber-shown;
+                clicked => {
+                    ResultsGlobal.throbber-shown = true;
+                    ResultsGlobal.save-image("svg");
+                }
             }
 
             Rectangle {

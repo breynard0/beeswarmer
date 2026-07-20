@@ -53,6 +53,27 @@ pub fn get_mapped_binary(column: Vec<String>) -> Vec<f64> {
     out
 }
 
+pub fn generate_pixmap_from_svg(svg: &str) -> Pixmap {
+    let mut fontdb = resvg::usvg::fontdb::Database::new();
+    let _ = fontdb.load_font_data(JETBRAINS_MONO.to_vec());
+    let tree = resvg::usvg::Tree::from_str(
+        svg,
+        &Options {
+            fontdb: Arc::new(fontdb),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let pixmap_size = tree.size().to_int_size();
+    let mut pixmap = Pixmap::new(pixmap_size.width(), pixmap_size.height()).unwrap();
+    resvg::render(
+        &tree,
+        resvg::tiny_skia::Transform::default(),
+        &mut pixmap.as_mut(),
+    );
+    pixmap
+}
+
 pub fn gen_model(data: ConfigurationLock, theme: BeeswarmTheme, ui_handle: Weak<AppWindow>) {
     std::thread::spawn(move || {
         info!("Opened new thread to train model");
@@ -134,47 +155,27 @@ pub fn gen_model(data: ConfigurationLock, theme: BeeswarmTheme, ui_handle: Weak<
 
         info!("Shapley values computed");
         info!("Starting beeswarm plot generation");
-        let (beeswarm_prep, scale_data) = beeswarm_prep(contribution_matrix, &data, &theme).unwrap();
+        let (beeswarm_prep, scale_data) =
+            beeswarm_prep(contribution_matrix, &data, &theme).unwrap();
         let beeswarm_raw = beeswarm_draw(beeswarm_prep, scale_data, &theme).unwrap();
+        let svg = beeswarm_raw.iter().map(|b| *b as char).collect::<String>();
         info!("SVG Generated");
 
-        let mut fontdb = resvg::usvg::fontdb::Database::new();
-        let _ = fontdb.load_font_data(JETBRAINS_MONO.to_vec());
-        let tree = resvg::usvg::Tree::from_data(
-            beeswarm_raw.as_slice(),
-            &Options {
-                fontdb: Arc::new(fontdb),
-                ..Default::default()
-            },
-        )
-        .unwrap();
-        let pixmap_size = tree.size().to_int_size();
-        let mut pixmap = Pixmap::new(pixmap_size.width(), pixmap_size.height()).unwrap();
-        resvg::render(
-            &tree,
-            resvg::tiny_skia::Transform::default(),
-            &mut pixmap.as_mut(),
-        );
-
-        fn construct_slint_image(pixmap: Pixmap) -> Image {
-            Image::from_rgba8(slint::SharedPixelBuffer::clone_from_slice(
-                pixmap.data(),
-                pixmap.width(),
-                pixmap.height(),
-            ))
-        }
-
-        let out = construct_slint_image(pixmap.clone());
-
+        let svg_clone = svg.clone();
         let _ = ui_handle.upgrade_in_event_loop(move |ui| {
             ui.global::<ResultsGlobal>().set_throbber_shown(false);
-            let img = construct_slint_image(pixmap);
-            ui.global::<ResultsGlobal>().set_preview(img);
+            ui.global::<ResultsGlobal>().set_preview_set(true);
+            let pixmap = generate_pixmap_from_svg(&svg_clone);
+            ui.global::<ResultsGlobal>().set_preview(Image::from_rgba8(
+                slint::SharedPixelBuffer::clone_from_slice(
+                    pixmap.data(),
+                    pixmap.width(),
+                    pixmap.height(),
+                ),
+            ));
         });
 
-        unsafe {
-            crate::callbacks::result::set_current_preview_image(out.clone());
-        }
+        crate::callbacks::result::set_current_preview_image(svg);
 
         info!("Beeswarm plot generation complete");
     });

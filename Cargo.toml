@@ -6,8 +6,7 @@ edition = "2024"
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
 slint = "1.17.0"
-rfd = { version = "0.17.2", default-features = false, features = [ "gtk3", "wayland", "common-controls-v6"] }
-
+rfd = { version = "0.17.2", default-features = false, features = ["gtk3", "wayland", "common-controls-v6"] }
 spdlog-rs = "0.5.3"
 directories = "6.0.0"
 toml = "1.1.2"
@@ -15,7 +14,7 @@ forust-ml = "0.5.0"
 piet = "0.8.0"
 piet-svg = "0.8.0"
 resvg = "0.47.0"
-tokio = "1.53.0"
+image = { version = "0.25.10", features = ["png"], default-features = false }
 
 [build-dependencies]
 slint-build = "1.17.0"
