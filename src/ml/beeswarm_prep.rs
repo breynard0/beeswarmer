@@ -1,7 +1,9 @@
+use crate::BeeswarmTheme;
 use crate::ml::ConfigurationLock;
 use crate::ml::model::categorical_to_one_hot;
 use piet::kurbo::Size;
 use piet::{Color, Error, RenderContext, Text, TextLayout, TextLayoutBuilder};
+use crate::callbacks::result::fix_hex;
 
 pub const JETBRAINS_MONO: &[u8] = include_bytes!("../../resources/JetBrainsMono-Regular.ttf");
 
@@ -49,6 +51,7 @@ pub struct ScaleData {
 pub fn beeswarm_prep(
     contribution_matrix: forust_ml::Matrix<f64>,
     configuration_lock: &ConfigurationLock,
+    theme: &BeeswarmTheme,
 ) -> Result<(Vec<DrawRow>, ScaleData), Error> {
     let max_contribution = contribution_matrix
         .data
@@ -110,7 +113,11 @@ pub fn beeswarm_prep(
             let contribution_value = contributions[dot_idx];
 
             let progress = (feature_value - feature_min) / (feature_max - feature_min);
-            let colour = lerp_colour(Color::BLUE, Color::RED, progress);
+            let colour = lerp_colour(
+                Color::from_hex_str(&fix_hex(&theme.low)).unwrap_or(Color::BLUE),
+                Color::from_hex_str(&fix_hex(&theme.high)).unwrap_or(Color::RED),
+                progress,
+            );
 
             let position = (contribution_value + min_contribution.abs())
                 / (max_contribution + min_contribution.abs());

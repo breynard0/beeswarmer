@@ -44,6 +44,7 @@ export component AppWindow inherits Window {
         function general-reset(idx: int) {
             tab.selected-index = idx;
             tab.highest-achieved = idx;
+            ResultsGlobal.preview = @image-url("");
         }
 
         if tab.selected-index == 0: ProjectSetup {

@@ -2,6 +2,7 @@ import { Palette } from "std-widgets.slint";
 export component TinyTickbox {
     in-out property <bool> checked: true;
     in-out property <length> size: 20px;
+    in property <bool> enabled: true;
     callback on-toggled(bool);
 
     width: size;
@@ -22,7 +23,7 @@ export component TinyTickbox {
         font-size: size * 0.9;
         horizontal-alignment: center;
         vertical-alignment: center;
-        color: whitesmoke;
+        color: enabled ? whitesmoke.transparentize(0.5) : white;
     }
 
     focus := FocusScope {
@@ -30,6 +31,8 @@ export component TinyTickbox {
         accessible-role: checkbox;
         accessible-checkable: true;
         accessible-checked: checked;
+
+        enabled: parent.enabled;
 
         focus-on-tab-navigation: true;
 
@@ -46,6 +49,7 @@ export component TinyTickbox {
     touch := TouchArea {
         width: parent.width;
         height: parent.height;
+        enabled: parent.enabled;
 
         clicked => {
             checked = !checked;

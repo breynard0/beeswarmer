@@ -14,6 +14,21 @@ pub unsafe fn set_current_preview_image(img: Image) {
     }
 }
 
+pub fn fix_hex<S>(hex: &S) -> String
+where
+    S: ToString,
+{
+    let s = hex.to_string();
+    if s.len() == 0 {
+        return s;
+    }
+    if s.chars().nth(0).unwrap() != '#' {
+        format!("#{}", s)
+    } else {
+        s
+    }
+}
+
 pub fn result_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     let global = ui.global::<ResultsGlobal>();
     {
@@ -29,8 +44,10 @@ pub fn result_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
                 if lock.is_none() {
                     return;
                 }
-                crate::ml::model::gen_model(lock.unwrap(), ui_handle);
+                crate::ml::model::gen_model(lock.unwrap(), theme, ui_handle);
             }
         });
+
+        global.on_check_hex_correct(|s| piet::Color::from_hex_str(&s).is_ok());
     }
 }

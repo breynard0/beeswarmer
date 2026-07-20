@@ -8,7 +8,7 @@ export component Throbber {
     for idx in 8: Rectangle {
         x: (parent.width - self.width) / 2 + inner-radius * cos(idx * (360deg / 8));
         y: (parent.height - self.height) / 2 + inner-radius * sin(idx * (360deg / 8));
-        background: Palette.foreground.transparentize(mod(idx + progress * 8, 8) / 8);
+        background: Palette.foreground.transparentize(mod((8 - idx) + progress * 8, 8) / 8);
         width: size / 12;
         height: (size - inner-radius) / 2;
         transform-rotation: idx * (360deg / 8) + 90deg;

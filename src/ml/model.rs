@@ -1,7 +1,7 @@
 use crate::ml::beeswarm_draw::beeswarm_draw;
 use crate::ml::beeswarm_prep::{JETBRAINS_MONO, beeswarm_prep};
 use crate::ml::{ConfigurationLock, OutputColumnData};
-use crate::{AppWindow, ResultsGlobal};
+use crate::{AppWindow, BeeswarmTheme, ResultsGlobal};
 use forust_ml::gradientbooster::ContributionsMethod;
 use forust_ml::metric::Metric;
 use forust_ml::objective::ObjectiveType;
@@ -53,7 +53,7 @@ pub fn get_mapped_binary(column: Vec<String>) -> Vec<f64> {
     out
 }
 
-pub fn gen_model(data: ConfigurationLock, ui_handle: Weak<AppWindow>) {
+pub fn gen_model(data: ConfigurationLock, theme: BeeswarmTheme, ui_handle: Weak<AppWindow>) {
     std::thread::spawn(move || {
         info!("Opened new thread to train model");
 
@@ -134,8 +134,8 @@ pub fn gen_model(data: ConfigurationLock, ui_handle: Weak<AppWindow>) {
 
         info!("Shapley values computed");
         info!("Starting beeswarm plot generation");
-        let (beeswarm_prep, scale_data) = beeswarm_prep(contribution_matrix, &data).unwrap();
-        let beeswarm_raw = beeswarm_draw(beeswarm_prep, scale_data).unwrap();
+        let (beeswarm_prep, scale_data) = beeswarm_prep(contribution_matrix, &data, &theme).unwrap();
+        let beeswarm_raw = beeswarm_draw(beeswarm_prep, scale_data, &theme).unwrap();
         info!("SVG Generated");
 
         let mut fontdb = resvg::usvg::fontdb::Database::new();

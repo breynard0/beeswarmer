@@ -62,7 +62,8 @@ export global ResultsGlobal {
     };
 
     callback gen-beeswarm-img(theme: BeeswarmTheme);
-    in property <image> preview;
+    callback check-hex-correct(hex: string) -> bool;
+    in property <image> preview: @image-url("");
     in property <bool> throbber-shown: false;
 }
 
@@ -71,6 +72,11 @@ export component Results inherits TabBase {
 
     private property <BeeswarmTheme> current-theme: ResultsGlobal.light;
     private property <bool> custom: false;
+
+    private property <bool> fg_ok: true;
+    private property <bool> bg_ok: true;
+    private property <bool> low_ok: true;
+    private property <bool> high_ok: true;
 
     // Sidebar
     sidebar := Rectangle {
@@ -86,7 +92,7 @@ export component Results inherits TabBase {
             ComboBox {
                 current-value: current-theme.name;
                 model: ["Light", "Dark", "Nord", "Gruvbox Dark", "Gruvbox Light"];
-                enabled: !custom;
+                enabled: !custom && !ResultsGlobal.throbber-shown;
                 selected(current-value) => {
                     if (current-value == "Light") {
                         current-theme = ResultsGlobal.light;
@@ -104,7 +110,7 @@ export component Results inherits TabBase {
 
             HorizontalLayout {
                 t := Text {
-                    text: "Custom Colours:";
+                    text: "Custom Colours: ";
                 }
 
                 VerticalLayout {
@@ -115,6 +121,7 @@ export component Results inherits TabBase {
                     TinyTickbox {
                         size: 12px;
                         checked: custom;
+                        enabled: !ResultsGlobal.throbber-shown;
                         on-toggled(val) => {
                             custom = val;
                         }
@@ -123,6 +130,10 @@ export component Results inherits TabBase {
                     Rectangle {
                         vertical-stretch: 1;
                     }
+                }
+
+                Rectangle {
+                    horizontal-stretch: 1;
                 }
             }
 
@@ -136,13 +147,15 @@ export component Results inherits TabBase {
                     GridTextbox {
                         text: current-theme.foreground;
                         text-colour: Palette.foreground;
+                        read-only: ResultsGlobal.throbber-shown;
                         border-width: 1px;
-                        border-color: Palette.border;
+                        border-color: fg_ok ? Palette.border : Colors.orangered;
                         background: Palette.alternate-background;
                         border-radius: 2px;
                         width: parent.width / 2;
                         on-edit(text) => {
                             current-theme.foreground = text;
+                            fg_ok = ResultsGlobal.check-hex-correct(text);
                         }
                     }
                 }
@@ -155,13 +168,15 @@ export component Results inherits TabBase {
                     GridTextbox {
                         text: current-theme.background;
                         text-colour: Palette.foreground;
+                        read-only: ResultsGlobal.throbber-shown;
                         border-width: 1px;
-                        border-color: Palette.border;
+                        border-color: bg_ok ? Palette.border : Colors.orangered;
                         background: Palette.alternate-background;
                         border-radius: 2px;
                         width: parent.width / 2;
                         on-edit(text) => {
                             current-theme.background = text;
+                            bg_ok = ResultsGlobal.check-hex-correct(text);
                         }
                     }
                 }
@@ -174,13 +189,15 @@ export component Results inherits TabBase {
                     GridTextbox {
                         text: current-theme.high;
                         text-colour: Palette.foreground;
+                        read-only: ResultsGlobal.throbber-shown;
                         border-width: 1px;
-                        border-color: Palette.border;
+                        border-color: high_ok ? Palette.border : Colors.orangered;
                         background: Palette.alternate-background;
                         border-radius: 2px;
                         width: parent.width / 2;
                         on-edit(text) => {
                             current-theme.high = text;
+                            high_ok = ResultsGlobal.check-hex-correct(text);
                         }
                     }
                 }
@@ -193,13 +210,15 @@ export component Results inherits TabBase {
                     GridTextbox {
                         text: current-theme.low;
                         text-colour: Palette.foreground;
+                        read-only: ResultsGlobal.throbber-shown;
                         border-width: 1px;
-                        border-color: Palette.border;
+                        border-color: low_ok ? Palette.border : Colors.orangered;
                         background: Palette.alternate-background;
                         border-radius: 2px;
                         width: parent.width / 2;
                         on-edit(text) => {
                             current-theme.low = text;
+                            low_ok = ResultsGlobal.check-hex-correct(text);
                         }
                     }
                 }
@@ -208,6 +227,8 @@ export component Results inherits TabBase {
             HorizontalLayout {
                 gen-button := Button {
                     text: "Generate";
+                    enabled: !ResultsGlobal.throbber-shown && fg_ok && bg_ok && high_ok && low_ok;
+                    horizontal-stretch: 1;
                     clicked => {
                         ResultsGlobal.throbber-shown = true;
                         ResultsGlobal.gen-beeswarm-img(current-theme);
@@ -216,19 +237,19 @@ export component Results inherits TabBase {
 
                 if (ResultsGlobal.throbber-shown): Throbber { }
             }
-            
+
             Rectangle {
                 height: 16px;
             }
 
             Button {
                 text: "Save PNG";
-                enabled: false;
+                enabled: ResultsGlobal.preview != @image-url("");
             }
 
             Button {
                 text: "Save SVG";
-                enabled: false;
+                enabled: ResultsGlobal.preview != @image-url("");
             }
 
             Rectangle {

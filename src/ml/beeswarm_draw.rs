@@ -1,10 +1,16 @@
+use crate::BeeswarmTheme;
+use crate::callbacks::result::fix_hex;
 use crate::ml::beeswarm_prep::{DrawRow, JETBRAINS_MONO, ScaleData};
 use piet::kurbo::{Circle, Line, Rect, Size};
 use piet::{
     Color, Error, RenderContext, StrokeStyle, Text, TextLayout, TextLayoutBuilder, UnitPoint,
 };
 
-pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8>, Error> {
+pub fn beeswarm_draw(
+    rows: Vec<DrawRow>,
+    scale_data: ScaleData,
+    theme: &BeeswarmTheme,
+) -> Result<Vec<u8>, Error> {
     const ROW_HEIGHT: f64 = 80.0;
     let longest_title = rows
         .iter()
@@ -40,7 +46,10 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         .load_font(JETBRAINS_MONO)
         .expect("Couldn't load embedded font");
 
-    piet.fill(Rect::new(0.0, 0.0, size.width, size.height), &Color::WHITE);
+    piet.fill(
+        Rect::new(0.0, 0.0, size.width, size.height),
+        &Color::from_hex_str(&fix_hex(&theme.background)).unwrap_or(Color::WHITE),
+    );
 
     let mut center_line_location;
 
@@ -53,7 +62,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
         let layout = text
             .new_text_layout(draw_row.title.clone())
             .font(jetbrains_mono.clone(), 32.0)
-            .text_color(Color::BLACK)
+            .text_color(Color::from_hex_str(&fix_hex(&theme.foreground)).unwrap_or(Color::BLACK))
             .build()
             .unwrap();
         piet.draw_text(
@@ -74,7 +83,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
                 center_line_location + line_thickness / 2.0,
                 y + ROW_HEIGHT + row_margin,
             ),
-            &Color::BLACK,
+            &Color::from_hex_str(&fix_hex(&theme.foreground)).unwrap_or(Color::BLACK),
         );
 
         let dash_pattern = &[line_thickness, line_thickness * 2.0];
@@ -89,7 +98,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
                     y + ROW_HEIGHT / 2.0 - line_thickness / 2.0,
                 ),
             ),
-            &Color::GRAY,
+            &Color::from_hex_str(&fix_hex(&theme.foreground)).unwrap_or(Color::BLACK),
             line_thickness,
             &stroke_style,
         );
@@ -137,13 +146,20 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
     );
     piet.fill(
         bounds,
-        &piet::LinearGradient::new(UnitPoint::LEFT, UnitPoint::RIGHT, (Color::BLUE, Color::RED)),
+        &piet::LinearGradient::new(
+            UnitPoint::LEFT,
+            UnitPoint::RIGHT,
+            (
+                Color::from_hex_str(&fix_hex(&theme.low)).unwrap_or(Color::BLACK),
+                Color::from_hex_str(&fix_hex(&theme.high)).unwrap_or(Color::BLACK),
+            ),
+        ),
     );
     let text = piet.text();
     let layout = text
         .new_text_layout("Low")
         .font(jetbrains_mono.clone(), colour_axis_height / 2.0 - 2.0)
-        .text_color(Color::BLACK)
+        .text_color(Color::from_hex_str(&fix_hex(&theme.foreground)).unwrap_or(Color::BLACK))
         .build()
         .unwrap();
     piet.draw_text(
@@ -157,7 +173,7 @@ pub fn beeswarm_draw(rows: Vec<DrawRow>, scale_data: ScaleData) -> Result<Vec<u8
     let layout = text
         .new_text_layout("High")
         .font(jetbrains_mono.clone(), colour_axis_height / 2.0 - 2.0)
-        .text_color(Color::BLACK)
+        .text_color(Color::from_hex_str(&fix_hex(&theme.foreground)).unwrap_or(Color::BLACK))
         .build()
         .unwrap();
     piet.draw_text(
