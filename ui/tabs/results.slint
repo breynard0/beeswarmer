@@ -60,7 +60,8 @@ export global ResultsGlobal {
         low: "#83a598",
     };
 
-    callback gen-beeswarm-img(theme: BeeswarmTheme) -> image;
+    callback gen-beeswarm-img(theme: BeeswarmTheme);
+    in property <image> preview;
 }
 
 export component Results inherits TabBase {
@@ -68,8 +69,6 @@ export component Results inherits TabBase {
 
     private property <BeeswarmTheme> current-theme: ResultsGlobal.light;
     private property <bool> custom: false;
-
-    private property <image> preview;
 
     // Sidebar
     sidebar := Rectangle {
@@ -207,19 +206,18 @@ export component Results inherits TabBase {
             gen-button := Button {
                 text: "Generate";
                 clicked => {
-                    preview = ResultsGlobal.gen-beeswarm-img(current-theme);
+                    ResultsGlobal.gen-beeswarm-img(current-theme);
                 }
             }
-
+            
             Rectangle {
                 height: 16px;
             }
-
+            
             Button {
                 text: "Save PNG";
                 enabled: false;
             }
-
             Button {
                 text: "Save SVG";
                 enabled: false;
@@ -244,7 +242,7 @@ export component Results inherits TabBase {
         width: parent.width - sidebar.width;
         background: Palette.control-background;
         Image {
-            source: preview;
+            source: ResultsGlobal.preview;
         }
     }
 }

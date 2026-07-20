@@ -1,11 +1,14 @@
 use crate::ml::beeswarm_draw::beeswarm_draw;
 use crate::ml::beeswarm_prep::{JETBRAINS_MONO, beeswarm_prep};
 use crate::ml::{ConfigurationLock, OutputColumnData};
+use crate::{AppWindow, ResultsGlobal};
 use forust_ml::gradientbooster::ContributionsMethod;
 use forust_ml::metric::Metric;
 use forust_ml::objective::ObjectiveType;
 use forust_ml::{GradientBooster, Matrix};
+use resvg::tiny_skia::Pixmap;
 use resvg::usvg::Options;
+use slint::{ComponentHandle, Image, Weak};
 use spdlog::{error, info};
 use std::sync::Arc;
 
@@ -50,7 +53,7 @@ pub fn get_mapped_binary(column: Vec<String>) -> Vec<f64> {
     out
 }
 
-pub fn gen_model(data: ConfigurationLock) {
+pub fn gen_model(data: ConfigurationLock, ui_handle: Weak<AppWindow>) {
     std::thread::spawn(move || {
         info!("Opened new thread to train model");
 
@@ -146,15 +149,32 @@ pub fn gen_model(data: ConfigurationLock) {
         )
         .unwrap();
         let pixmap_size = tree.size().to_int_size();
-        let mut pixmap =
-            resvg::tiny_skia::Pixmap::new(pixmap_size.width(), pixmap_size.height()).unwrap();
+        let mut pixmap = Pixmap::new(pixmap_size.width(), pixmap_size.height()).unwrap();
         resvg::render(
             &tree,
             resvg::tiny_skia::Transform::default(),
             &mut pixmap.as_mut(),
         );
-        // pixmap.save_png("out.png").unwrap();
-        std::fs::write("out.svg", beeswarm_raw).unwrap();
+
+        fn construct_slint_image(mut pixmap: Pixmap) -> Image {
+            Image::from_rgba8(slint::SharedPixelBuffer::clone_from_slice(
+                pixmap.data(),
+                pixmap.width(),
+                pixmap.height(),
+            ))
+        }
+
+        let out = construct_slint_image(pixmap.clone());
+
+        let _ = ui_handle.upgrade_in_event_loop(move |ui| {
+            let img = construct_slint_image(pixmap);
+            ui.global::<ResultsGlobal>().set_preview(img);
+        });
+
+        unsafe {
+            crate::callbacks::result::set_current_preview_image(out.clone());
+        }
+
         info!("Beeswarm plot generation complete");
     });
 }
