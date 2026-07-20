@@ -3,7 +3,6 @@ use crate::ml::ConfigurationLock;
 use crate::ml::OutputColumnData::{BinaryClassificatory, Regressive};
 use crate::savefile::{SaveFile, ScoredRegressionEntry};
 use crate::table::TableColumnType;
-use crate::table::TableColumnType::{Categorical, Numerical};
 use crate::{AppWindow, ConfigurationGlobal, ScoredRegressionEntrySlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
 use spdlog::{error, warn};
@@ -109,10 +108,33 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
             let mut out = vec![];
             if let Ok(handle) = data.lock() {
                 let save_file = SaveFile::load_savefile(handle.save_file_path.clone());
+                let table_data = &save_file.table_data.unwrap();
                 out = save_file
                     .conf_settings
                     .scored_regression_data
                     .iter()
+                    .filter(|s| {
+                        match table_data
+                            .columns
+                            .iter()
+                            .find(|col| col.title == s.column_title)
+                        {
+                            Some(col) => match col.enabled {
+                                true => true,
+                                false => {
+                                    remove_scored_regression_entry(
+                                        handle.save_file_path.clone(),
+                                        s,
+                                    );
+                                    false
+                                }
+                            },
+                            None => {
+                                remove_scored_regression_entry(handle.save_file_path.clone(), s);
+                                false
+                            }
+                        }
+                    })
                     .map(|x| x.clone().into())
                     .collect::<Vec<_>>()
             }
@@ -268,7 +290,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                         let col = table.columns
                             .iter()
                             .find(|c| c.title == conf_settings.simple_regression_column.clone().unwrap()
-                                && c.column_type == Numerical)
+                                && c.column_type == TableColumnType::Numerical)
                             .unwrap()
                             .column_entries
                             .iter()
@@ -304,7 +326,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                         let col = table.columns
                             .iter()
                             .find(|c| c.title == conf_settings.binary_regression_column.clone().unwrap()
-                                && c.column_type == Categorical)
+                                && c.column_type == TableColumnType::Categorical)
                             .unwrap()
                             .column_entries
                             .iter()
@@ -322,7 +344,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                 save_file.conf_lock = Some(ConfigurationLock {
                     numerical_columns: table.columns
                         .iter()
-                        .filter(|col| col.enabled && col.column_type == Numerical && col.title != output_name)
+                        .filter(|col| col.enabled && col.column_type == TableColumnType::Numerical && col.title != output_name)
                         .map(|col| (
                             col.title.clone(),
                             col.column_entries
@@ -336,7 +358,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     categorical_columns: table.columns
                         .iter()
                         .filter(|col| col.enabled
-                            && col.column_type == Categorical
+                            && col.column_type == TableColumnType::Categorical
                             && col.title != output_name
                             && conf_settings.scored_regression_data
                             .iter()
@@ -361,4 +383,17 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
             }
         });
     }
+}
+
+fn remove_scored_regression_entry(save_file_path: String, s: &&ScoredRegressionEntry) {
+    SaveFile::tweak_savefile(save_file_path, |savefile| {
+        savefile.conf_settings.scored_regression_data.remove(
+            savefile
+                .conf_settings
+                .scored_regression_data
+                .iter()
+                .position(|x| x.column_title == s.column_title)
+                .unwrap(),
+        );
+    });
 }

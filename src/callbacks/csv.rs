@@ -8,8 +8,6 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 pub fn csv_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
-    // let ui_handle = ui.as_weak();
-
     let global = ui.global::<CSVGlobal>();
 
     {

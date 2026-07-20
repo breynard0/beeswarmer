@@ -114,7 +114,7 @@ pub fn beeswarm_draw(
                 let mut bag = arr.to_vec();
                 let mut out = vec![];
                 while !bag.is_empty() {
-                    let idx = rng.random_range((0..bag.len()));
+                    let idx = rng.random_range(0..bag.len());
                     out.push(bag.remove(idx));
                 }
                 out

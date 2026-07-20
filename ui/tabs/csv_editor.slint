@@ -52,6 +52,7 @@ export component CSVEditor inherits TabBase {
         running: false;
         triggered => {
             CSVGlobal.save-table(CSVGlobal.data-table, data.save-file-path);
+            self.stop();
         }
     }
 
@@ -273,6 +274,7 @@ export component CSVEditor inherits TabBase {
                     check-continue-button-enabled = set-check-continue-button-enabled()
                 }
                 clicked => {
+                    CSVGlobal.save-table(CSVGlobal.data-table, data.save-file-path);
                     root.next()
                 }
             }

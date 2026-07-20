@@ -80,6 +80,20 @@ export component Results inherits TabBase {
     private property <bool> low_ok: true;
     private property <bool> high_ok: true;
 
+    function fill-in-colours(theme: string) {
+        if (theme == "Light") {
+            current-theme = ResultsGlobal.light;
+        } else if (theme == "Dark") {
+            current-theme = ResultsGlobal.dark;
+        } else if (theme == "Nord") {
+            current-theme = ResultsGlobal.nord;
+        } else if (theme == "Gruvbox Dark") {
+            current-theme = ResultsGlobal.gruvbox-dark;
+        } else if (theme == "Gruvbox Light") {
+            current-theme = ResultsGlobal.gruvbox-light;
+        }
+    }
+
     // Sidebar
     sidebar := Rectangle {
         width: root.width / 4.0;
@@ -96,17 +110,7 @@ export component Results inherits TabBase {
                 model: ["Light", "Dark", "Nord", "Gruvbox Dark", "Gruvbox Light"];
                 enabled: !custom && !ResultsGlobal.throbber-shown;
                 selected(current-value) => {
-                    if (current-value == "Light") {
-                        current-theme = ResultsGlobal.light;
-                    } else if (current-value == "Dark") {
-                        current-theme = ResultsGlobal.dark;
-                    } else if (current-value == "Nord") {
-                        current-theme = ResultsGlobal.nord;
-                    } else if (current-value == "Gruvbox Dark") {
-                        current-theme = ResultsGlobal.gruvbox-dark;
-                    } else if (current-value == "Gruvbox Light") {
-                        current-theme = ResultsGlobal.gruvbox-light;
-                    }
+                    fill-in-colours(current-value);
                 }
             }
 
@@ -126,6 +130,9 @@ export component Results inherits TabBase {
                         enabled: !ResultsGlobal.throbber-shown;
                         on-toggled(val) => {
                             custom = val;
+                            if (val == false) {
+                                fill-in-colours(current-theme.name);
+                            }
                         }
                     }
 
@@ -283,6 +290,12 @@ export component Results inherits TabBase {
         Image {
             source: ResultsGlobal.preview;
             height: parent.height * 0.95;
+            Rectangle {
+                width: parent.width;
+                height: parent.height;
+                border-width: 1px;
+                border-color: Palette.border;
+            }
         }
     }
 }
