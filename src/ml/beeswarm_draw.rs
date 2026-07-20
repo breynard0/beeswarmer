@@ -1,10 +1,11 @@
-use crate::BeeswarmTheme;
 use crate::callbacks::result::fix_hex;
-use crate::ml::beeswarm_prep::{DrawRow, JETBRAINS_MONO, ScaleData};
+use crate::ml::beeswarm_prep::{DrawRow, ScaleData, JETBRAINS_MONO};
+use crate::BeeswarmTheme;
 use piet::kurbo::{Circle, Line, Rect, Size};
 use piet::{
     Color, Error, RenderContext, StrokeStyle, Text, TextLayout, TextLayoutBuilder, UnitPoint,
 };
+use rand::{RngExt, SeedableRng};
 
 pub fn beeswarm_draw(
     rows: Vec<DrawRow>,
@@ -106,8 +107,18 @@ pub fn beeswarm_draw(
         // Dots
         let mut dots = draw_row.dots.clone();
         dots.sort_by(|a, b| a.0.total_cmp(&b.0));
+        let mut rng = rand::rngs::SmallRng::seed_from_u64(0);
         let bins_array = dots
             .chunk_by(|a, b| (a.0 - b.0).abs() < bin_size && a.1 == b.1)
+            .map(|arr| {
+                let mut bag = arr.to_vec();
+                let mut out = vec![];
+                while !bag.is_empty() {
+                    let idx = rng.random_range((0..bag.len()));
+                    out.push(bag.remove(idx));
+                }
+                out
+            })
             .collect::<Vec<_>>();
         for bin in bins_array {
             for (idx, (position, colour)) in bin.iter().enumerate() {

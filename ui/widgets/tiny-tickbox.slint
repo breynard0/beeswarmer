@@ -12,7 +12,7 @@ export component TinyTickbox {
         background: parent.checked ? Palette.selection-background : Palette.alternate-background;
         border-radius: size * 0.3;
         border-width: max(size / 30, 1px);
-        border-color: focus.has-focus ? Palette.foreground : Palette.border;
+        border-color: focus.has-focus ? Palette.foreground : parent.enabled ? Palette.border : Palette.border.transparentize(0.5);
     }
 
     Text {
@@ -23,7 +23,7 @@ export component TinyTickbox {
         font-size: size * 0.9;
         horizontal-alignment: center;
         vertical-alignment: center;
-        color: enabled ? whitesmoke.transparentize(0.5) : white;
+        color: enabled ? whitesmoke : whitesmoke.transparentize(0.5);
     }
 
     focus := FocusScope {
