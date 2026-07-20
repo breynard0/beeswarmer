@@ -1,5 +1,3 @@
-use spdlog::info;
-
 pub mod beeswarm_draw;
 pub mod beeswarm_prep;
 pub mod model;
@@ -16,8 +14,4 @@ pub struct ConfigurationLock {
     pub categorical_columns: Vec<(String, Vec<String>)>,
     pub output_name: String,
     pub output_data: OutputColumnData,
-}
-
-pub fn next_step_interface() {
-    info!("Move to next step");
 }

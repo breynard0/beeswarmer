@@ -1,5 +1,6 @@
 import { TabBase } from "tab_base.slint";
 import { AppStateSlint } from "../appstate.slint";
+import { Throbber } from "../widgets/throbber.slint";
 import {
     Palette,
     GroupBox,
@@ -62,6 +63,7 @@ export global ResultsGlobal {
 
     callback gen-beeswarm-img(theme: BeeswarmTheme);
     in property <image> preview;
+    in property <bool> throbber-shown: false;
 }
 
 export component Results inherits TabBase {
@@ -203,21 +205,27 @@ export component Results inherits TabBase {
                 }
             }
 
-            gen-button := Button {
-                text: "Generate";
-                clicked => {
-                    ResultsGlobal.gen-beeswarm-img(current-theme);
+            HorizontalLayout {
+                gen-button := Button {
+                    text: "Generate";
+                    clicked => {
+                        ResultsGlobal.throbber-shown = true;
+                        ResultsGlobal.gen-beeswarm-img(current-theme);
+                    }
                 }
+
+                if (ResultsGlobal.throbber-shown): Throbber { }
             }
             
             Rectangle {
                 height: 16px;
             }
-            
+
             Button {
                 text: "Save PNG";
                 enabled: false;
             }
+
             Button {
                 text: "Save SVG";
                 enabled: false;
@@ -243,6 +251,7 @@ export component Results inherits TabBase {
         background: Palette.control-background;
         Image {
             source: ResultsGlobal.preview;
+            height: parent.height * 0.95;
         }
     }
 }

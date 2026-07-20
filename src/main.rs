@@ -10,7 +10,6 @@ mod table;
 use crate::appdata::AppState;
 use crate::callbacks::handle_callbacks;
 use crate::config::Config;
-use crate::ml::model::gen_model;
 use spdlog::info;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
@@ -23,12 +22,6 @@ pub const SLASH: char = '/';
 slint::include_modules!();
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // gen_model(
-    //     savefile::SaveFile::load_savefile("./tests.bswproj".to_string())
-    //         .conf_lock
-    //         .unwrap(),
-    // );
-    // loop {}
     run_app()?
 }
 

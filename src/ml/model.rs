@@ -110,7 +110,7 @@ pub fn gen_model(data: ConfigurationLock, ui_handle: Weak<AppWindow>) {
             .iter()
             .enumerate()
             .filter(|(idx, _)| (idx + 1) % (shap_values_raw.len() / y.len()) != 0)
-            .map(|(idx, val)| *val)
+            .map(|(_, val)| *val)
             .collect::<Vec<_>>();
 
         let mut shap_values_transposed = vec![];
@@ -156,7 +156,7 @@ pub fn gen_model(data: ConfigurationLock, ui_handle: Weak<AppWindow>) {
             &mut pixmap.as_mut(),
         );
 
-        fn construct_slint_image(mut pixmap: Pixmap) -> Image {
+        fn construct_slint_image(pixmap: Pixmap) -> Image {
             Image::from_rgba8(slint::SharedPixelBuffer::clone_from_slice(
                 pixmap.data(),
                 pixmap.width(),
@@ -167,6 +167,7 @@ pub fn gen_model(data: ConfigurationLock, ui_handle: Weak<AppWindow>) {
         let out = construct_slint_image(pixmap.clone());
 
         let _ = ui_handle.upgrade_in_event_loop(move |ui| {
+            ui.global::<ResultsGlobal>().set_throbber_shown(false);
             let img = construct_slint_image(pixmap);
             ui.global::<ResultsGlobal>().set_preview(img);
         });

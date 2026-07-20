@@ -1,10 +1,8 @@
 use crate::appdata::AppState;
-use crate::callbacks::sync_appdata;
 use crate::savefile::SaveFile;
 use crate::{AppWindow, ResultsGlobal};
 use slint::{ComponentHandle, Image};
-use spdlog::{error, info};
-use std::sync::{Arc, LazyLock, Mutex};
+use std::sync::{Arc, Mutex};
 
 // Avert your eyes from this terrible bit of code.
 // Since this gets called exactly once, I think I can get away without a mutex.
@@ -25,17 +23,14 @@ pub fn result_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
         global.on_gen_beeswarm_img(move |theme| {
             let data = data.clone();
             let ui_handle = ui_handle.clone();
-            let ui_handle_2 = ui_handle.clone();
-            let _ = ui_handle.upgrade_in_event_loop(move |ui| {
-                if let Ok(data) = data.lock() {
-                    let savefile = SaveFile::load_savefile(data.save_file_path.clone());
-                    let lock = savefile.conf_lock;
-                    if lock.is_none() {
-                        return;
-                    }
-                    crate::ml::model::gen_model(lock.unwrap(), ui_handle_2);
+            if let Ok(data) = data.lock() {
+                let savefile = SaveFile::load_savefile(data.save_file_path.clone());
+                let lock = savefile.conf_lock;
+                if lock.is_none() {
+                    return;
                 }
-            });
+                crate::ml::model::gen_model(lock.unwrap(), ui_handle);
+            }
         });
     }
 }

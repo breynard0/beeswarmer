@@ -44,8 +44,6 @@ pub struct DrawRow {
 
 pub struct ScaleData {
     pub line_location: f64,
-    pub min_value: f64,
-    pub max_value: f64,
 }
 
 pub fn beeswarm_prep(
@@ -131,8 +129,6 @@ pub fn beeswarm_prep(
         rows,
         ScaleData {
             line_location: min_contribution.abs() / (min_contribution.abs() + max_contribution),
-            min_value: *min_contribution,
-            max_value: *max_contribution,
         },
     ))
 }
