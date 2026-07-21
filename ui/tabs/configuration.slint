@@ -41,8 +41,8 @@ export component Configuration inherits TabBase {
 
     callback reset-to-here();
 
-    private property <string> simple-selected: "Unset";
-    private property <string> binary-selected: "Unset";
+    private property <string> simple-selected: @tr("Unset");
+    private property <string> binary-selected: @tr("Unset");
 
     private property <[string]> numerical-col-names;
     private property <[string]> categorical-col-names;
@@ -271,7 +271,7 @@ export component Configuration inherits TabBase {
             }
 
             Button {
-                enabled: (simple-selected != "Unset" && tabs.selection-idx == 0) || (tabs.selection-idx == 1 && !contains-zero-entry) || (binary-selected != "Unset" && tabs.selection-idx == 2);
+                enabled: (simple-selected != @tr("Unset" ) && tabs.selection-idx == 0) || (tabs.selection-idx == 1 && !contains-zero-entry) || (binary-selected != @tr("Unset" ) && tabs.selection-idx == 2);
                 text: @tr("Continue");
                 clicked => {
                     ConfigurationGlobal.conf-continue();

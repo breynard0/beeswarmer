@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2026-06-29 23:54+0000\n"
-"PO-Revision-Date: 2026-06-29 20:58-0300\n"
+"PO-Revision-Date: 2026-07-20 12:00-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -13,57 +13,295 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 3.9\n"
 
-#: ui/app.slint:22
+#: ui/app.slint:22 ui/app.slint:23 ui/app.slint:25 ui/app.slint:36
 msgctxt "AppWindow"
 msgid "Project Setup"
 msgstr "Configuration du projet"
 
-#: ui/app.slint:23
+#: ui/app.slint:23 ui/app.slint:24 ui/app.slint:26 ui/app.slint:36
 msgctxt "AppWindow"
 msgid "CSV Editor"
 msgstr "Éditeur CSV"
 
-#: ui/app.slint:24
+#: ui/app.slint:24 ui/app.slint:25 ui/app.slint:27
 msgctxt "AppWindow"
 msgid "Numerical"
 msgstr "Numérique"
 
-#: ui/app.slint:25
+#: ui/app.slint:25 ui/app.slint:26 ui/app.slint:28
 msgctxt "AppWindow"
 msgid "Categorical"
 msgstr "Catégorique"
 
-#: ui/app.slint:26
+#: ui/app.slint:26 ui/app.slint:27 ui/app.slint:29
 msgctxt "AppWindow"
 msgid "Scoring"
 msgstr "Évaluation"
 
-#: ui/app.slint:27
+#: ui/app.slint:27 ui/app.slint:28 ui/app.slint:30
+#, fuzzy
 msgctxt "AppWindow"
 msgid "Generate"
-msgstr "Génération"
+msgstr "Générer"
 
-#: ui/tabs/setup.slint:16
+#: ui/tabs/setup.slint:16 ui/tabs/setup.slint:17 ui/tabs/setup.slint:25
 msgctxt "ProjectSetup"
 msgid "Project File Path:"
 msgstr "Chemin du fichier projet:"
 
-#: ui/tabs/setup.slint:36
+#: ui/tabs/setup.slint:36 ui/tabs/setup.slint:37 ui/tabs/setup.slint:43
 msgctxt "ProjectSetup"
 msgid "Open File"
 msgstr "Ouvrir fichier"
 
-#: ui/tabs/setup.slint:44
+#: ui/tabs/setup.slint:44 ui/tabs/setup.slint:45 ui/tabs/setup.slint:52
 msgctxt "ProjectSetup"
 msgid "New Project"
 msgstr "Nouveau projet"
 
-#: ui/tabs/setup.slint:74
+#: ui/tabs/setup.slint:74 ui/tabs/setup.slint:79
 msgctxt "ProjectSetup"
 msgid "Next"
 msgstr "Prochain"
 
-#: ui/widgets/language-selector.slint:49
+#: ui/widgets/language-selector.slint:49 ui/widgets/language-selector.slint:67
 msgctxt "LanguageSelector"
 msgid "Language Toggle"
-msgstr "Inverseur de la langue"
+msgstr "Sélecteur de la langue"
+
+#: ui/app.slint:36
+msgctxt "AppWindow"
+msgid "Configuration"
+msgstr "Configuration"
+
+#: ui/app.slint:36
+msgctxt "AppWindow"
+msgid "Results"
+msgstr "Résultats"
+
+#: ui/tabs/configuration.slint:73
+msgctxt "Configuration"
+msgid "Simple Regression"
+msgstr "Régression simple"
+
+#: ui/tabs/configuration.slint:74
+msgctxt "Configuration"
+msgid "Scored Regression"
+msgstr "Régression notée"
+
+#: ui/tabs/configuration.slint:75
+msgctxt "Configuration"
+msgid "Binary Classification"
+msgstr "Classification binaire"
+
+#: ui/tabs/configuration.slint:88
+msgctxt "Configuration"
+msgid "Select numerical column representing the dependent variable"
+msgstr ""
+"Selectionner la colonne numérique qui représente la variable dépendante"
+
+#: ui/tabs/configuration.slint:167
+msgctxt "Configuration"
+msgid "Correct Answer: "
+msgstr "Réponse correct: "
+
+#: ui/tabs/configuration.slint:186
+#, fuzzy
+msgctxt "Configuration"
+msgid "Points Gained on Correct (0-5):"
+msgstr "Points gangées si correcte (0-5):"
+
+#: ui/tabs/configuration.slint:209
+msgctxt "Configuration"
+msgid "Points Lost on Incorrect (0-5):"
+msgstr "Points perdues si incorrecte (0-5):"
+
+#: ui/tabs/configuration.slint:242
+msgctxt "Configuration"
+msgid ""
+"Select categorical column that contains only two values representing the "
+"dependent variable"
+msgstr ""
+"Selectionner une colonne catégorique avec seulement deux valeurs qui "
+"représente la variable dépendante"
+
+#: ui/tabs/configuration.slint:265
+#, fuzzy
+msgctxt "Configuration"
+msgid "Contains an entry with both point values set to zero"
+msgstr "Possède une entrée avec toutes les points comme zéro"
+
+#: ui/tabs/configuration.slint:275
+msgctxt "Configuration"
+msgid "Continue"
+msgstr "Continuer"
+
+#: ui/tabs/csv_editor.slint:90
+msgctxt "CSVEditor"
+msgid "Cannot continue, not all enabled columns have their types or names set"
+msgstr ""
+"Ne peut pas continuer, au moins une colonne active manque un nom ou un type"
+
+#: ui/tabs/csv_editor.slint:93
+msgctxt "CSVEditor"
+msgid "Cannot continue, at least one enabled cell is missing a value"
+msgstr "Ne peut pas continuer, au moins une cellule active manque une valeur"
+
+#: ui/tabs/csv_editor.slint:96
+msgctxt "CSVEditor"
+msgid ""
+"Cannot continue, enabled column marked numerical contains categorical data"
+msgstr ""
+"Ne peut pas continuer, une colonne active notée comme numérique possède des "
+"données catégoriques"
+
+#: ui/tabs/csv_editor.slint:99
+msgctxt "CSVEditor"
+msgid "Cannot continue, table is empty"
+msgstr "Ne peut pas continue, le tableau est vide"
+
+#: ui/tabs/csv_editor.slint:180 ui/tabs/csv_editor.slint:193
+msgctxt "CSVEditor"
+msgid "Numerical"
+msgstr "Numérique"
+
+#: ui/tabs/csv_editor.slint:183 ui/tabs/csv_editor.slint:193
+msgctxt "CSVEditor"
+msgid "Categorical"
+msgstr "Catégorique"
+
+#: ui/tabs/csv_editor.slint:185 ui/tabs/csv_editor.slint:193
+msgctxt "CSVEditor"
+msgid "Unset"
+msgstr "Vide"
+
+#: ui/tabs/csv_editor.slint:253
+msgctxt "CSVEditor"
+msgid "Import New CSV"
+msgstr "Importer CSV nouveau"
+
+#: ui/tabs/csv_editor.slint:271
+msgctxt "CSVEditor"
+msgid "Continue"
+msgstr "Continuer"
+
+#: ui/tabs/setup.slint:168
+msgctxt "ProjectSetup"
+msgid "Load and Continue"
+msgstr "Charger et continuer"
+
+#: ui/tabs/setup.slint:176
+msgctxt "ProjectSetup"
+msgid "Cannot continue: {}"
+msgstr "Ne peut pas continuer: {}"
+
+#: ui/widgets/toggle-selector.slint:69
+msgctxt "ToggleSelector"
+msgid "Language Toggle"
+msgstr "Sélecteur de la langue"
+
+#: ui/tabs/configuration.slint:44 ui/tabs/configuration.slint:45
+msgctxt "Configuration"
+msgid "Unset"
+msgstr "Vide"
+
+#: ui/tabs/results.slint:25
+msgctxt "ResultsGlobal"
+msgid "Light"
+msgstr "Brillant"
+
+#: ui/tabs/results.slint:33
+msgctxt "ResultsGlobal"
+msgid "Dark"
+msgstr "Foncé"
+
+#: ui/tabs/results.slint:41
+msgctxt "ResultsGlobal"
+msgid "Nord"
+msgstr "Nord"
+
+#: ui/tabs/results.slint:49
+msgctxt "ResultsGlobal"
+msgid "Gruvbox Dark"
+msgstr "Gruvbox Foncé"
+
+#: ui/tabs/results.slint:57
+msgctxt "ResultsGlobal"
+msgid "Gruvbox Light"
+msgstr "Gruvbox Brillant"
+
+#: ui/tabs/results.slint:84 ui/tabs/results.slint:110
+msgctxt "Results"
+msgid "Light"
+msgstr "Brillant"
+
+#: ui/tabs/results.slint:86 ui/tabs/results.slint:110
+msgctxt "Results"
+msgid "Dark"
+msgstr "Foncé"
+
+#: ui/tabs/results.slint:88 ui/tabs/results.slint:110
+msgctxt "Results"
+msgid "Nord"
+msgstr "Nord"
+
+#: ui/tabs/results.slint:90 ui/tabs/results.slint:110
+msgctxt "Results"
+msgid "Gruvbox Dark"
+msgstr "Gruvbox Foncé"
+
+#: ui/tabs/results.slint:92 ui/tabs/results.slint:110
+msgctxt "Results"
+msgid "Gruvbox Light"
+msgstr "Gruvbox Brillant"
+
+#: ui/tabs/results.slint:105
+msgctxt "Results"
+msgid "Plot Colours:"
+msgstr "Couleurs du graphique:"
+
+#: ui/tabs/results.slint:119
+msgctxt "Results"
+msgid "Custom Colours: "
+msgstr "Couleurs personnalisés: "
+
+#: ui/tabs/results.slint:153
+msgctxt "Results"
+msgid "FG: "
+msgstr "P.P: "
+
+#: ui/tabs/results.slint:174
+msgctxt "Results"
+msgid "BG: "
+msgstr "A.P: "
+
+#: ui/tabs/results.slint:195
+msgctxt "Results"
+msgid "High: "
+msgstr "Fort: "
+
+#: ui/tabs/results.slint:216
+msgctxt "Results"
+msgid "Low: "
+msgstr "Faible: "
+
+#: ui/tabs/results.slint:238
+#, fuzzy
+msgctxt "Results"
+msgid "Generate"
+msgstr "Générer"
+
+#: ui/tabs/results.slint:255
+msgctxt "Results"
+msgid "Save PNG"
+msgstr "Sauvegarder PNG"
+
+#: ui/tabs/results.slint:264
+msgctxt "Results"
+msgid "Save SVG"
+msgstr "Sauvegarder SVG"
+
+#: ui/app.slint:66 ui/app.slint:67
+msgctxt "AppWindow"
+msgid "Unset"
+msgstr "Vide"

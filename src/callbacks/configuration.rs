@@ -6,12 +6,18 @@ use crate::table::TableColumnType;
 use crate::{AppWindow, ConfigurationGlobal, ScoredRegressionEntrySlint};
 use slint::{ComponentHandle, Model, ModelRc, VecModel};
 use spdlog::{error, warn};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 //noinspection DuplicatedCode
 pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     let global = ui.global::<ConfigurationGlobal>();
-
+    fn get_unset_with_language(data: &MutexGuard<AppState>) -> slint::SharedString {
+        match data.french_selected {
+            true => "Vide",
+            false => "Unset",
+        }
+        .into()
+    }
     {
         let data = data.clone();
         global.on_get_numerical_column_names(move || {
@@ -26,7 +32,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     .filter(|col| col.enabled && col.column_type == TableColumnType::Numerical)
                     .map(|col| col.title.clone().into())
                     .collect();
-                out.insert(0, "Unset".into())
+                out.insert(0, get_unset_with_language(&handle))
             }
             ModelRc::new(VecModel::from(out))
         })
@@ -46,7 +52,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     .filter(|col| col.enabled && col.column_type == TableColumnType::Categorical)
                     .map(|col| col.title.clone().into())
                     .collect();
-                out.insert(0, "Unset".into())
+                out.insert(0, get_unset_with_language(&handle))
             }
             ModelRc::new(VecModel::from(out))
         })
@@ -81,7 +87,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     })
                     .map(|col| col.title.clone().into())
                     .collect();
-                out.insert(0, "Unset".into())
+                out.insert(0, get_unset_with_language(&handle))
             }
             ModelRc::new(VecModel::from(out))
         })
@@ -97,6 +103,12 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     .conf_settings
                     .simple_regression_column
                     .unwrap_or_else(|| "Unset".to_string());
+                if out == "Unset".to_string() && handle.french_selected {
+                    out = "Vide".to_string();
+                }
+                if out == "Vide".to_string() && !handle.french_selected {
+                    out = "Unset".to_string();
+                }
             }
             out.into()
         })
@@ -135,6 +147,18 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                             }
                         }
                     })
+                    .map(|x| {
+                        let mut out = x.clone();
+
+                        if out.column_title == "Unset".to_string() && handle.french_selected {
+                            out.column_title = "Vide".to_string();
+                        }
+                        if out.column_title == "Vide".to_string() && !handle.french_selected {
+                            out.column_title = "Unset".to_string();
+                        }
+
+                        out
+                    })
                     .map(|x| x.clone().into())
                     .collect::<Vec<_>>()
             }
@@ -152,6 +176,12 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                     .conf_settings
                     .binary_regression_column
                     .unwrap_or_else(|| "Unset".to_string());
+                if out == "Unset".to_string() && handle.french_selected {
+                    out = "Vide".to_string();
+                }
+                if out == "Vide".to_string() && !handle.french_selected {
+                    out = "Unset".to_string();
+                }
             }
             out.into()
         })

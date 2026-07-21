@@ -22,7 +22,7 @@ export struct BeeswarmTheme {
 
 export global ResultsGlobal {
     out property <BeeswarmTheme> light: {
-        name: "Light",
+        name: @tr("Light"),
         foreground: "#030303",
         background: "#ffffff",
         high: "#ff0051",
@@ -30,7 +30,7 @@ export global ResultsGlobal {
     };
 
     out property <BeeswarmTheme> dark: {
-        name: "Dark",
+        name: @tr("Dark"),
         foreground: "#fefefe",
         background: "#1a1a1c",
         high: "#ec710a",
@@ -38,7 +38,7 @@ export global ResultsGlobal {
     };
 
     out property <BeeswarmTheme> nord: {
-        name: "Nord",
+        name: @tr("Nord"),
         foreground: "#eceff4",
         background: "#2e3440",
         high: "#bf616a",
@@ -46,7 +46,7 @@ export global ResultsGlobal {
     };
 
     out property <BeeswarmTheme> gruvbox-dark: {
-        name: "Gruvbox Dark",
+        name: @tr("Gruvbox Dark"),
         foreground: "#f9f5d7",
         background: "#32302f",
         high: "#fb4934",
@@ -54,7 +54,7 @@ export global ResultsGlobal {
     };
 
     out property <BeeswarmTheme> gruvbox-light: {
-        name: "Gruvbox Light",
+        name: @tr("Gruvbox Light"),
         foreground: "#1d2021",
         background: "f2e5bc",
         high: "#fb4934",
@@ -81,15 +81,15 @@ export component Results inherits TabBase {
     private property <bool> high_ok: true;
 
     function fill-in-colours(theme: string) {
-        if (theme == "Light") {
+        if (theme == @tr("Light")) {
             current-theme = ResultsGlobal.light;
-        } else if (theme == "Dark") {
+        } else if (theme == @tr("Dark")) {
             current-theme = ResultsGlobal.dark;
-        } else if (theme == "Nord") {
+        } else if (theme == @tr("Nord")) {
             current-theme = ResultsGlobal.nord;
-        } else if (theme == "Gruvbox Dark") {
+        } else if (theme == @tr("Gruvbox Dark")) {
             current-theme = ResultsGlobal.gruvbox-dark;
-        } else if (theme == "Gruvbox Light") {
+        } else if (theme == @tr("Gruvbox Light")) {
             current-theme = ResultsGlobal.gruvbox-light;
         }
     }
@@ -102,12 +102,12 @@ export component Results inherits TabBase {
             padding: 10px;
             spacing: 4px;
             Text {
-                text: "Plot Colours:";
+                text: @tr("Plot Colours:");
             }
 
             ComboBox {
                 current-value: current-theme.name;
-                model: ["Light", "Dark", "Nord", "Gruvbox Dark", "Gruvbox Light"];
+                model: [@tr("Light"), @tr("Dark"), @tr("Nord"), @tr("Gruvbox Dark"), @tr("Gruvbox Light")];
                 enabled: !custom && !ResultsGlobal.throbber-shown;
                 selected(current-value) => {
                     fill-in-colours(current-value);
@@ -116,7 +116,7 @@ export component Results inherits TabBase {
 
             HorizontalLayout {
                 t := Text {
-                    text: "Custom Colours: ";
+                    text: @tr("Custom Colours: ");
                 }
 
                 VerticalLayout {
@@ -150,7 +150,7 @@ export component Results inherits TabBase {
                 spacing: 2px;
                 HorizontalLayout {
                     Text {
-                        text: "FG: ";
+                        text: @tr("FG: ");
                     }
 
                     GridTextbox {
@@ -171,7 +171,7 @@ export component Results inherits TabBase {
 
                 HorizontalLayout {
                     Text {
-                        text: "BG: ";
+                        text: @tr("BG: ");
                     }
 
                     GridTextbox {
@@ -192,7 +192,7 @@ export component Results inherits TabBase {
 
                 HorizontalLayout {
                     Text {
-                        text: "High: ";
+                        text: @tr("High: ");
                     }
 
                     GridTextbox {
@@ -213,7 +213,7 @@ export component Results inherits TabBase {
 
                 HorizontalLayout {
                     Text {
-                        text: "Low: ";
+                        text: @tr("Low: ");
                     }
 
                     GridTextbox {
@@ -235,7 +235,7 @@ export component Results inherits TabBase {
 
             HorizontalLayout {
                 gen-button := Button {
-                    text: "Generate";
+                    text: @tr("Generate");
                     enabled: !ResultsGlobal.throbber-shown && fg_ok && bg_ok && high_ok && low_ok;
                     horizontal-stretch: 1;
                     clicked => {
@@ -252,7 +252,7 @@ export component Results inherits TabBase {
             }
 
             Button {
-                text: "Save PNG";
+                text: @tr("Save PNG");
                 enabled: ResultsGlobal.preview-set && !ResultsGlobal.throbber-shown;
                 clicked => {
                     ResultsGlobal.throbber-shown = true;
@@ -261,7 +261,7 @@ export component Results inherits TabBase {
             }
 
             Button {
-                text: "Save SVG";
+                text: @tr("Save SVG");
                 enabled: ResultsGlobal.preview-set && !ResultsGlobal.throbber-shown;
                 clicked => {
                     ResultsGlobal.throbber-shown = true;

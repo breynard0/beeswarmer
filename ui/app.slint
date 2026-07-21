@@ -63,8 +63,8 @@ export component AppWindow inherits Window {
             data <=> app-data-slint;
             reset-to-here() => {
                 general-reset(1);
-                ConfigurationGlobal.save-simple-selected("Unset");
-                ConfigurationGlobal.save-binary-selected("Unset");
+                ConfigurationGlobal.save-simple-selected(@tr("Unset"));
+                ConfigurationGlobal.save-binary-selected(@tr("Unset"));
             }
             next => general-next(1);
         }
@@ -72,7 +72,7 @@ export component AppWindow inherits Window {
         if tab.selected-index == 2: Configuration {
             font-size: root.default-font-size;
             window-width: root.width;
-            data <=> app-data-slint;
+            data: app-data-slint;
             reset-to-here() => {
                 general-reset(2);
             }

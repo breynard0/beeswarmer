@@ -69,11 +69,15 @@ pub fn setup_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) {
     }
 
     {
+        let data = data.clone();
         global.on_language_changed(move |is_french| {
             let mut c = Config::load_config();
             c.is_french = is_french;
             c.apply_config();
             c.save_config();
+            if let Ok(mut handle) = data.lock() {
+                handle.french_selected = is_french;
+            }
         });
     }
 
