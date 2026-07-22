@@ -10,7 +10,7 @@ mod table;
 use crate::appdata::AppState;
 use crate::callbacks::handle_callbacks;
 use crate::config::Config;
-use spdlog::info;
+use spdlog::{info, warn};
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 
@@ -27,6 +27,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn run_app() -> Result<Result<(), Box<dyn Error>>, Box<dyn Error>> {
     let ui = AppWindow::new()?;
+    
+    #[cfg(target_os = "linux")]
+    if let Err(e) = slint::set_xdg_app_id("beeswarmer") {
+        warn!("Failed to set XDG/Wayland App ID: {}", e);
+    }
 
     let mut app_data = Arc::new(Mutex::new(AppState::default()));
 
