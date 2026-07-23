@@ -100,4 +100,5 @@ pub struct ConfigurationSettings {
     pub simple_regression_column: Option<String>,
     pub scored_regression_data: Vec<ScoredRegressionEntry>,
     pub binary_regression_column: Option<String>,
+    pub binary_regression_hvalue: Option<String>
 }

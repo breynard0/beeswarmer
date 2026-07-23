@@ -22,12 +22,15 @@ export global ConfigurationGlobal {
     callback get-numerical-column-names() -> [string];
     callback get-categorical-column-names() -> [string];
     callback get-binary-column-names() -> [string];
+    callback get-binary-column-values(string) -> [string];
     callback load-simple-selected() -> string;
     callback load-scored-regression-entries() -> [ScoredRegressionEntrySlint];
     callback load-binary-selected() -> string;
+    callback load-binary-value() -> string;
     callback load-tab-selected() -> int;
     callback save-simple-selected(string);
     callback save-binary-selected(string);
+    callback save-binary-high-value-selected(string);
     callback save-scored-regression-entries([ScoredRegressionEntrySlint]);
     callback save-tab-selected(int);
     callback add-scored-regression-entry(string, [ScoredRegressionEntrySlint]) -> [ScoredRegressionEntrySlint];
@@ -47,6 +50,8 @@ export component Configuration inherits TabBase {
     private property <[string]> numerical-col-names;
     private property <[string]> categorical-col-names;
     private property <[string]> binary-col-names;
+    private property <[string]> binary-values;
+    private property <string> selected-binary-value;
 
     private property <bool> contains-zero-entry;
 
@@ -56,9 +61,11 @@ export component Configuration inherits TabBase {
         numerical-col-names = ConfigurationGlobal.get-numerical-column-names();
         categorical-col-names = ConfigurationGlobal.get-categorical-column-names();
         binary-col-names = ConfigurationGlobal.get-binary-column-names();
+        selected-binary-value = ConfigurationGlobal.load-binary-value();
         scored-entries = ConfigurationGlobal.load-scored-regression-entries();
         simple-selected = ConfigurationGlobal.load-simple-selected();
         binary-selected = ConfigurationGlobal.load-binary-selected();
+        binary-values = ConfigurationGlobal.get-binary-column-values(binary-selected);
         tabs.selection-idx = ConfigurationGlobal.load-tab-selected();
         contains-zero-entry = ConfigurationGlobal.check-contains-zero-entry(scored-entries);
     }
@@ -243,13 +250,25 @@ export component Configuration inherits TabBase {
                 wrap: word-wrap;
             }
 
-            ComboBox {
+            b-col-names := ComboBox {
                 model: binary-col-names;
                 current-value: binary-selected;
                 selected(current-value) => {
                     reset-to-here();
                     binary-selected = current-value;
-                    ConfigurationGlobal.save-binary-selected(binary-selected)
+                    binary-values = ConfigurationGlobal.get-binary-column-values(binary-selected);
+                    ConfigurationGlobal.save-binary-selected(binary-selected);
+                }
+            }
+
+            ComboBox {
+                enabled: b-col-names.current-value != @tr("Unset");
+                model: binary-values;
+                current-value: selected-binary-value;
+                selected(current-value) => {
+                    reset-to-here();
+                    selected-binary-value = current-value;
+                    ConfigurationGlobal.save-binary-high-value-selected(selected-binary-value)
                 }
             }
         }
@@ -271,7 +290,7 @@ export component Configuration inherits TabBase {
             }
 
             Button {
-                enabled: (simple-selected != @tr("Unset" ) && tabs.selection-idx == 0) || (tabs.selection-idx == 1 && !contains-zero-entry) || (binary-selected != @tr("Unset" ) && tabs.selection-idx == 2);
+                enabled: (simple-selected != @tr("Unset" ) && tabs.selection-idx == 0) || (tabs.selection-idx == 1 && !contains-zero-entry) || (binary-selected != @tr("Unset") && selected-binary-value != @tr("Unset") && tabs.selection-idx == 2);
                 text: @tr("Continue");
                 clicked => {
                     ConfigurationGlobal.conf-continue();

@@ -38,12 +38,11 @@ pub fn categorical_to_one_hot(entries: &Vec<String>) -> Vec<(String, Vec<f64>)> 
     out
 }
 
-pub fn get_mapped_binary(column: Vec<String>) -> Vec<f64> {
+pub fn get_mapped_binary(column: Vec<String>, high: String) -> Vec<f64> {
     let mut out = vec![];
-    let first = &column[0];
 
     for entry in &column {
-        if *entry == *first {
+        if *entry == high {
             out.push(1.0)
         } else {
             out.push(0.0)
@@ -96,7 +95,7 @@ pub fn gen_model(data: ConfigurationLock, theme: BeeswarmTheme, ui_handle: Weak<
 
         let y = match &data.output_data {
             OutputColumnData::Regressive(array) => array.clone(),
-            OutputColumnData::BinaryClassificatory(array) => get_mapped_binary(array.clone()),
+            OutputColumnData::BinaryClassificatory((array, high_value)) => get_mapped_binary(array.clone(), high_value.clone()),
         };
 
         let matrix = Matrix::new(

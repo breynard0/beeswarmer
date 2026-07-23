@@ -95,6 +95,30 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
 
     {
         let data = data.clone();
+        global.on_get_binary_column_values(move |col_title| {
+            let mut out = vec![];
+            if let Ok(handle) = data.lock() {
+                let savefile = SaveFile::load_savefile(handle.save_file_path.clone());
+                let table_data = savefile.table_data.unwrap();
+                let result = table_data
+                    .columns
+                    .iter()
+                    .find(|x| x.title == col_title.to_string());
+
+                if let Some(col) = result {
+                    out = col.column_entries.iter().map(|s| s.into()).collect();
+                }
+
+                out.sort();
+                out.dedup();
+                out.insert(0, get_unset_with_language(&handle))
+            }
+            ModelRc::new(VecModel::from(out))
+        })
+    }
+
+    {
+        let data = data.clone();
         global.on_load_simple_selected(move || {
             let mut out = String::new();
             if let Ok(handle) = data.lock() {
@@ -189,6 +213,27 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
 
     {
         let data = data.clone();
+        global.on_load_binary_value(move || {
+            let mut out = String::new();
+            if let Ok(handle) = data.lock() {
+                let save_file = SaveFile::load_savefile(handle.save_file_path.clone());
+                out = save_file
+                    .conf_settings
+                    .binary_regression_hvalue
+                    .unwrap_or_else(|| "Unset".to_string());
+                if out == "Unset".to_string() && handle.french_selected {
+                    out = "Vide".to_string();
+                }
+                if out == "Vide".to_string() && !handle.french_selected {
+                    out = "Unset".to_string();
+                }
+            }
+            out.into()
+        })
+    }
+
+    {
+        let data = data.clone();
         global.on_load_tab_selected(move || {
             let mut out = 0;
             if let Ok(handle) = data.lock() {
@@ -230,6 +275,17 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
             if let Ok(handle) = data.lock() {
                 SaveFile::tweak_savefile(handle.save_file_path.clone(), |savefile| {
                     savefile.conf_settings.binary_regression_column = Some(s.into());
+                });
+            }
+        })
+    }
+
+    {
+        let data = data.clone();
+        global.on_save_binary_high_value_selected(move |s| {
+            if let Ok(handle) = data.lock() {
+                SaveFile::tweak_savefile(handle.save_file_path.clone(), |savefile| {
+                    savefile.conf_settings.binary_regression_hvalue = Some(s.into());
                 });
             }
         })
@@ -362,7 +418,7 @@ pub fn configuration_callbacks(data: &mut Arc<Mutex<AppState>>, ui: &AppWindow) 
                             .iter()
                             .map(|s| s.parse().unwrap())
                             .collect::<Vec<_>>();
-                        output_data = BinaryClassificatory(col);
+                        output_data = BinaryClassificatory((col, save_file.conf_settings.binary_regression_hvalue.clone().unwrap()));
                         conf_settings.binary_regression_column.unwrap()
                     }
                     _ => {

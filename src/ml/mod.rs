@@ -5,7 +5,7 @@ pub mod model;
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub enum OutputColumnData {
     Regressive(Vec<f64>),
-    BinaryClassificatory(Vec<String>),
+    BinaryClassificatory((Vec<String>, String)),
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
